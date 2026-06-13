@@ -378,6 +378,30 @@
   .diag-intro h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
   .diag-intro p { font-size: 14px; color: #c4c4d8; line-height: 1.6; }
 
+  /* ── REAL WORLD BOX ── */
+  .real-world-box {
+    background: linear-gradient(135deg, rgba(167,139,250,0.12), rgba(123,110,246,0.06));
+    border: 1px solid rgba(167,139,250,0.3);
+    border-left: 3px solid var(--accent2);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 16px;
+  }
+  .rw-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 8px;
+  }
+  .real-world-box p {
+    font-size: 14px;
+    line-height: 1.65;
+    color: #d4d4f0;
+    margin: 0;
+  }
+
   /* scrollbar hide */
   ::-webkit-scrollbar { display: none; }
 </style>
@@ -1000,34 +1024,26 @@ function confirmBack() {
 function buildSummaryPrompt(target) {
   const name = target.sectionName || target.name;
   const topics = target.topics;
-  return `You are an expert actuarial science tutor. Write a study summary for "${name}" from Nonlife Actuarial Models (Tse textbook).
+  return `You are an expert actuarial science tutor. Write a study summary for "${name}" (Nonlife Actuarial Models, Tse).
+Topics: ${topics}
 
-Key topics: ${topics}
+TONE: Practical, clear, like explaining to a smart colleague. NOT textbook style. Short sentences.
 
-TONE: Write like you're explaining to a smart colleague, not a textbook. Ground every concept in a real-world insurance scenario. For each concept, briefly show HOW it appears in actual insurance practice (e.g. "An insurer uses Poisson to forecast daily motor claims because..."). Make it intuitive and memorable.
+FORMAT (use exactly this HTML structure):
+- Short explanation per concept (1-2 sentences max each)
+- End with this exact block:
+<div class="real-world-box"><div class="rw-label">📍 Real World</div><p>ONE specific, vivid real insurance example. Name actual numbers or context. E.g: "A Turkish motor insurer models daily claim arrivals with Poisson(λ=8.3). In 2023 they used this to set aside ₺2.1M daily reserve buffer."</p></div>
 
-Format as clean HTML (<h3> for subsections, <p> for paragraphs, <ul>/<li> for lists). Under 350 words. No preamble — start directly.`;
+Clean HTML only. Under 300 words. Start directly — no preamble.`;
 }
 
 function buildDiagnosticPrompt(target) {
   const name = target.sectionName || target.name;
   const topics = target.topics;
-  return `You are an expert actuarial science tutor. Generate exactly 3 diagnostic multiple-choice questions for "${name}" from Nonlife Actuarial Models (Tse textbook).
+  return `Generate exactly 3 diagnostic MCQ for "${name}" (Nonlife Actuarial Models, Tse). Topics: ${topics}
 
-These questions test EXISTING knowledge before studying — mix easy, medium, hard.
-Topics: ${topics}
-
-Return ONLY a valid JSON array, no markdown, no explanation:
-[
-  {
-    "question": "...",
-    "options": ["A text", "B text", "C text", "D text"],
-    "correct": 0,
-    "explanation": "Brief explanation of why this answer is correct."
-  }
-]
-
-"correct" is the 0-based index of the correct option. Generate exactly 3 questions.`;
+CRITICAL: Respond with ONLY a raw JSON array. No markdown, no backticks, no explanation. Start with [ end with ].
+[{"question":"?","options":["A","B","C","D"],"correct":0,"explanation":"why"},{"question":"?","options":["A","B","C","D"],"correct":1,"explanation":"why"},{"question":"?","options":["A","B","C","D"],"correct":2,"explanation":"why"}]`;
 }
 
 function buildMainPrompt(target, level) {
@@ -1038,22 +1054,11 @@ function buildMainPrompt(target, level) {
     intermediate: 'moderate difficulty, multi-step problems, applying formulas',
     advanced: 'challenging exam-style questions, complex calculations, edge cases',
   };
-  return `You are an expert actuarial science tutor. Generate exactly 5 ${level}-level multiple-choice questions for "${name}" from Nonlife Actuarial Models (Tse textbook).
+  return `Generate exactly 5 ${level}-level MCQ for "${name}" (Nonlife Actuarial Models, Tse).
+Level: ${levelDesc[level]}. Topics: ${topics}
 
-Level focus: ${levelDesc[level]}
-Topics: ${topics}
-
-Return ONLY a valid JSON array, no markdown, no explanation:
-[
-  {
-    "question": "...",
-    "options": ["A text", "B text", "C text", "D text"],
-    "correct": 0,
-    "explanation": "Detailed explanation of the correct answer and why others are wrong."
-  }
-]
-
-"correct" is the 0-based index. Generate exactly 5 questions.`;
+CRITICAL: Respond with ONLY a raw JSON array. No markdown, no backticks, no explanation. Start with [ end with ].
+[{"question":"?","options":["A","B","C","D"],"correct":0,"explanation":"why"},{"question":"?","options":["A","B","C","D"],"correct":1,"explanation":"why"},{"question":"?","options":["A","B","C","D"],"correct":0,"explanation":"why"},{"question":"?","options":["A","B","C","D"],"correct":2,"explanation":"why"},{"question":"?","options":["A","B","C","D"],"correct":3,"explanation":"why"}]`;
 }
 
 // ═══════════════════════════════════════
@@ -1082,22 +1087,32 @@ async function callClaudeJSON(prompt) {
   const raw = await callClaude(prompt);
   if (!raw) return null;
   try {
-    const clean = raw.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(clean);
-    if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('empty');
-    return parsed;
+    return parseJSON(raw);
   } catch (e) {
-    showToast('Failed to parse questions, retrying…');
-    // one retry
-    const raw2 = await callClaude(prompt + '\n\nIMPORTANT: Return ONLY the JSON array, nothing else.');
+    // retry once
+    const raw2 = await callClaude(prompt);
     if (!raw2) return null;
     try {
-      const clean2 = raw2.replace(/```json|```/g, '').trim();
-      return JSON.parse(clean2);
+      return parseJSON(raw2);
     } catch {
-      showToast('Could not generate questions'); goTo('screen-chapters'); return null;
+      showToast('Could not generate questions');
+      goTo('screen-chapters');
+      return null;
     }
   }
+}
+
+function parseJSON(raw) {
+  // Strip markdown fences
+  let clean = raw.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
+  // Find first [ and last ]
+  const start = clean.indexOf('[');
+  const end = clean.lastIndexOf(']');
+  if (start === -1 || end === -1) throw new Error('no array');
+  clean = clean.slice(start, end + 1);
+  const parsed = JSON.parse(clean);
+  if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('empty');
+  return parsed;
 }
 
 // ═══════════════════════════════════════
