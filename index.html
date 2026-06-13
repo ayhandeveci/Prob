@@ -428,6 +428,16 @@
   </div>
 </div>
 
+<!-- ═══════════════ SCREEN: SECTION SELECT ═══════════════ -->
+<div class="screen" id="screen-sections">
+  <div class="header">
+    <button class="back-btn" onclick="goTo('screen-chapters')">← Chapters</button>
+  </div>
+  <div class="scroll-content" id="section-list">
+    <!-- injected -->
+  </div>
+</div>
+
 <!-- ═══════════════ SCREEN: LOADING ═══════════════ -->
 <div class="screen" id="screen-loading">
   <div class="loading-wrap">
@@ -500,21 +510,131 @@
 // DATA
 // ═══════════════════════════════════════
 const CHAPTERS = [
-  { num: 1, name: "Claim-Frequency Distribution", part: "Part I · Loss Models", topics: "Binomial, Poisson, Negative Binomial, (a,b,0) class, compound & mixture distributions" },
-  { num: 2, name: "Claim-Severity Distribution", part: "Part I · Loss Models", topics: "Exponential, Gamma, Weibull, Pareto, coverage modifications, deductibles, policy limits" },
-  { num: 3, name: "Aggregate-Loss Models", part: "Part I · Loss Models", topics: "Individual & collective risk models, Panjer recursion, De Pril recursion, stop-loss reinsurance" },
-  { num: 4, name: "Risk Measures", part: "Part II · Risk & Ruin", topics: "VaR, CTE, coherent risk measures, Wang transform, distortion functions, Esscher transform" },
-  { num: 5, name: "Ruin Theory", part: "Part II · Risk & Ruin", topics: "Discrete & continuous ruin, Lundberg's inequality, deficit distribution, surplus process" },
-  { num: 6, name: "Classical Credibility", part: "Part III · Credibility", topics: "Full & partial credibility, claim frequency/severity/aggregate, Bühlmann credibility intro" },
-  { num: 7, name: "Bühlmann Credibility", part: "Part III · Credibility", topics: "Bühlmann & Bühlmann-Straub models, variance components, EVPV, VHM" },
-  { num: 8, name: "Bayesian Approach", part: "Part III · Credibility", topics: "Posterior distribution, conjugate priors, gamma-Poisson, beta-geometric, exact credibility" },
-  { num: 9, name: "Empirical Credibility", part: "Part III · Credibility", topics: "Empirical Bayes, nonparametric & semiparametric estimation, Bühlmann parameter estimation" },
-  { num: 10, name: "Model Estimation & Data Types", part: "Part IV · Model Construction", topics: "Complete, grouped, truncated, censored data; MLE properties, point & interval estimation" },
-  { num: 11, name: "Nonparametric Estimation", part: "Part IV · Model Construction", topics: "Empirical distribution, Kaplan-Meier, Nelson-Aalen, kernel density estimation" },
-  { num: 12, name: "Parametric Estimation", part: "Part IV · Model Construction", topics: "MOM, percentile matching, MLE, proportional hazards, GLM, copulas" },
-  { num: 13, name: "Model Evaluation & Selection", part: "Part IV · Model Construction", topics: "KS test, Anderson-Darling, chi-square, likelihood ratio, AIC, BIC" },
-  { num: 14, name: "Basic Monte Carlo Methods", part: "Part IV · Model Construction", topics: "Inversion method, acceptance-rejection, variance reduction, antithetic variables" },
-  { num: 15, name: "Applications of Monte Carlo", part: "Part IV · Model Construction", topics: "Bootstrap, hypothesis testing, asset price simulation, Wiener process, jump-diffusion" },
+  { num: 1, name: "Claim-Frequency Distribution", part: "Part I · Loss Models", topics: "Binomial, Poisson, Negative Binomial, (a,b,0) class, compound & mixture distributions",
+    sections: [
+      { id: "1.3.1", name: "Binomial Distribution", topics: "binomial distribution for claim frequency, n trials, fixed probability" },
+      { id: "1.3.2", name: "Geometric Distribution", topics: "geometric distribution, memoryless property, claim modeling" },
+      { id: "1.3.3", name: "Negative Binomial Distribution", topics: "negative binomial, overdispersion, mixed Poisson" },
+      { id: "1.3.4", name: "Poisson Distribution", topics: "Poisson distribution, claim frequency, lambda parameter" },
+      { id: "1.4", name: "(a, b, 0) Class", topics: "(a,b,0) class of distributions, recursive formula, Panjer class" },
+      { id: "1.5", name: "Compound & Mixture Distributions", topics: "compound distribution, mixture distribution, creating new claim frequency models" },
+    ]
+  },
+  { num: 2, name: "Claim-Severity Distribution", part: "Part I · Loss Models", topics: "Exponential, Gamma, Weibull, Pareto, coverage modifications, deductibles, policy limits",
+    sections: [
+      { id: "2.2.1", name: "Exponential Distribution", topics: "exponential distribution, memoryless property, claim severity" },
+      { id: "2.2.2", name: "Gamma Distribution", topics: "gamma distribution, shape and scale parameters, aggregate losses" },
+      { id: "2.2.3", name: "Weibull Distribution", topics: "Weibull distribution, heavy tail, failure rate modeling" },
+      { id: "2.2.4", name: "Pareto Distribution", topics: "Pareto distribution, heavy tail, large claim modeling" },
+      { id: "2.4", name: "Tail Properties", topics: "tail weight, limited expected value, excess loss variable" },
+      { id: "2.5", name: "Coverage Modifications", topics: "deductible, policy limit, coinsurance, inflation effects" },
+    ]
+  },
+  { num: 3, name: "Aggregate-Loss Models", part: "Part I · Loss Models", topics: "Individual & collective risk models, Panjer recursion, De Pril recursion, stop-loss reinsurance",
+    sections: [
+      { id: "3.2", name: "Individual Risk Model", topics: "individual risk model, convolution, De Pril recursion" },
+      { id: "3.3.1", name: "Collective Risk Model — Properties", topics: "compound distribution properties, mean and variance of aggregate losses" },
+      { id: "3.3.2", name: "Panjer Recursion", topics: "Panjer recursion formula, computing aggregate loss distribution" },
+      { id: "3.3.3", name: "Approximations", topics: "normal approximation, translated gamma, aggregate loss approximations" },
+      { id: "3.4", name: "Stop-Loss Reinsurance", topics: "stop-loss reinsurance, coverage modifications on aggregate losses" },
+    ]
+  },
+  { num: 4, name: "Risk Measures", part: "Part II · Risk & Ruin", topics: "VaR, CTE, coherent risk measures, Wang transform, distortion functions, Esscher transform",
+    sections: [
+      { id: "4.2", name: "Premium-Based Risk Measures", topics: "variance principle, standard deviation principle, premium calculation" },
+      { id: "4.3", name: "Coherent Risk Measures", topics: "axioms of coherence, subadditivity, monotonicity" },
+      { id: "4.4.1", name: "Value-at-Risk (VaR)", topics: "VaR, quantile risk measure, regulatory capital" },
+      { id: "4.4.2", name: "Conditional Tail Expectation (CTE)", topics: "CTE, TVaR, expected shortfall, tail risk" },
+      { id: "4.6", name: "Distortion Functions & Wang Transform", topics: "distortion function, Wang transform, risk-adjusted premium" },
+    ]
+  },
+  { num: 5, name: "Ruin Theory", part: "Part II · Risk & Ruin", topics: "Discrete & continuous ruin, Lundberg's inequality, deficit distribution, surplus process",
+    sections: [
+      { id: "5.1", name: "Surplus Process & Ruin", topics: "surplus function, probability of ruin, ultimate ruin" },
+      { id: "5.2.3", name: "Lundberg's Inequality (Discrete)", topics: "Lundberg's inequality, adjustment coefficient, discrete time" },
+      { id: "5.3", name: "Continuous-Time Surplus", topics: "Cramér-Lundberg model, premium rate, Poisson claim arrivals" },
+      { id: "5.4.1", name: "Lundberg's Inequality (Continuous)", topics: "Lundberg's inequality continuous time, adjustment coefficient" },
+      { id: "5.4.2", name: "Distribution of Deficit", topics: "deficit at ruin, Gerber-Shiu function, severity of ruin" },
+    ]
+  },
+  { num: 6, name: "Classical Credibility", part: "Part III · Credibility", topics: "Full & partial credibility, claim frequency/severity/aggregate, Bühlmann credibility intro",
+    sections: [
+      { id: "6.2.1", name: "Full Credibility — Frequency", topics: "full credibility standard, claim frequency, number of claims needed" },
+      { id: "6.2.2", name: "Full Credibility — Severity", topics: "full credibility for claim severity, coefficient of variation" },
+      { id: "6.2.3", name: "Full Credibility — Aggregate", topics: "full credibility for aggregate losses, pure premium" },
+      { id: "6.3", name: "Partial Credibility", topics: "square root rule, partial credibility, credibility factor Z" },
+    ]
+  },
+  { num: 7, name: "Bühlmann Credibility", part: "Part III · Credibility", topics: "Bühlmann & Bühlmann-Straub models, variance components, EVPV, VHM",
+    sections: [
+      { id: "7.2", name: "Variance Components", topics: "EVPV, VHM, variance of hypothetical means, expected value of process variance" },
+      { id: "7.3", name: "Bühlmann Credibility", topics: "Bühlmann k, credibility factor, Bühlmann estimate" },
+      { id: "7.4", name: "Bühlmann-Straub Model", topics: "Bühlmann-Straub, varying exposure weights, weighted credibility" },
+    ]
+  },
+  { num: 8, name: "Bayesian Approach", part: "Part III · Credibility", topics: "Posterior distribution, conjugate priors, gamma-Poisson, beta-geometric, exact credibility",
+    sections: [
+      { id: "8.1", name: "Bayesian Inference & Estimation", topics: "prior, posterior, likelihood, loss function, Bayesian estimator" },
+      { id: "8.2.1", name: "Gamma-Poisson Conjugate", topics: "gamma prior, Poisson likelihood, gamma-Poisson conjugate pair" },
+      { id: "8.2.2", name: "Beta-Geometric Conjugate", topics: "beta prior, geometric likelihood, beta-geometric conjugate" },
+      { id: "8.3", name: "Bayesian vs Bühlmann", topics: "exact credibility, when Bayesian equals Bühlmann, linear exponential family" },
+    ]
+  },
+  { num: 9, name: "Empirical Credibility", part: "Part III · Credibility", topics: "Empirical Bayes, nonparametric & semiparametric estimation, Bühlmann parameter estimation",
+    sections: [
+      { id: "9.1", name: "Empirical Bayes Method", topics: "empirical Bayes, estimating structural parameters from data" },
+      { id: "9.2", name: "Nonparametric Estimation", topics: "nonparametric Bühlmann parameter estimation, Bühlmann-Straub estimators" },
+      { id: "9.3", name: "Semiparametric Estimation", topics: "semiparametric approach, mixing parametric and nonparametric" },
+    ]
+  },
+  { num: 10, name: "Model Estimation & Data Types", part: "Part IV · Model Construction", topics: "Complete, grouped, truncated, censored data; MLE properties, point & interval estimation",
+    sections: [
+      { id: "10.2.2", name: "Complete Individual Data", topics: "complete data, individual observations, empirical estimation" },
+      { id: "10.2.3", name: "Incomplete Data (Truncation & Censoring)", topics: "left truncation, right censoring, incomplete individual data" },
+      { id: "10.2.4", name: "Grouped Data", topics: "grouped data, interval observations, histogram" },
+      { id: "10.1.3", name: "Properties of Estimators", topics: "unbiasedness, consistency, efficiency, MLE properties" },
+    ]
+  },
+  { num: 11, name: "Nonparametric Estimation", part: "Part IV · Model Construction", topics: "Empirical distribution, Kaplan-Meier, Nelson-Aalen, kernel density estimation",
+    sections: [
+      { id: "11.1.1", name: "Empirical Distribution", topics: "empirical distribution function, complete data estimation" },
+      { id: "11.2.1", name: "Kaplan-Meier Estimator", topics: "Kaplan-Meier product-limit estimator, censored data, survival function" },
+      { id: "11.2.2", name: "Nelson-Aalen Estimator", topics: "Nelson-Aalen cumulative hazard estimator, censored data" },
+      { id: "11.1.2", name: "Kernel Density Estimation", topics: "kernel smoothing, bandwidth selection, density estimation" },
+    ]
+  },
+  { num: 12, name: "Parametric Estimation", part: "Part IV · Model Construction", topics: "MOM, percentile matching, MLE, proportional hazards, GLM, copulas",
+    sections: [
+      { id: "12.1.1", name: "Method of Moments", topics: "method of moments, matching theoretical and sample moments" },
+      { id: "12.1.2", name: "Percentile Matching", topics: "percentile matching, empirical quantiles, parameter estimation" },
+      { id: "12.3", name: "Maximum Likelihood Estimation", topics: "MLE, likelihood function, complete and grouped data MLE" },
+      { id: "12.4.1", name: "Proportional Hazards Model", topics: "Cox proportional hazards, covariates, hazard ratio" },
+      { id: "12.5", name: "Copulas", topics: "copula, joint distribution modeling, dependence structure" },
+    ]
+  },
+  { num: 13, name: "Model Evaluation & Selection", part: "Part IV · Model Construction", topics: "KS test, Anderson-Darling, chi-square, likelihood ratio, AIC, BIC",
+    sections: [
+      { id: "13.2.1", name: "Kolmogorov-Smirnov Test", topics: "KS test, maximum distance, goodness-of-fit" },
+      { id: "13.2.2", name: "Anderson-Darling Test", topics: "Anderson-Darling test, tail sensitivity, goodness-of-fit" },
+      { id: "13.2.3", name: "Chi-Square Test", topics: "chi-square goodness-of-fit, grouped data, expected frequencies" },
+      { id: "13.3", name: "Information Criteria (AIC/BIC)", topics: "AIC, BIC, model selection, penalized likelihood" },
+    ]
+  },
+  { num: 14, name: "Basic Monte Carlo Methods", part: "Part IV · Model Construction", topics: "Inversion method, acceptance-rejection, variance reduction, antithetic variables",
+    sections: [
+      { id: "14.3.1", name: "Inversion Method", topics: "inverse transform method, generating random variables from CDF" },
+      { id: "14.3.2", name: "Acceptance-Rejection Method", topics: "acceptance-rejection sampling, envelope distribution" },
+      { id: "14.6", name: "Variance Reduction Techniques", topics: "antithetic variables, control variables, importance sampling" },
+    ]
+  },
+  { num: 15, name: "Applications of Monte Carlo", part: "Part IV · Model Construction", topics: "Bootstrap, hypothesis testing, asset price simulation, Wiener process, jump-diffusion",
+    sections: [
+      { id: "15.2", name: "Bootstrap", topics: "bootstrap resampling, bias estimation, MSE estimation" },
+      { id: "15.1", name: "Monte Carlo for Hypothesis Testing", topics: "Monte Carlo p-value, KS test simulation, chi-square simulation" },
+      { id: "15.5.1", name: "Wiener Process", topics: "Wiener process, Brownian motion, stochastic process" },
+      { id: "15.5.3", name: "Jump-Diffusion Process", topics: "jump-diffusion, Poisson jumps, asset price modeling" },
+    ]
+  },
 ];
 
 // ═══════════════════════════════════════
@@ -522,6 +642,7 @@ const CHAPTERS = [
 // ═══════════════════════════════════════
 let apiKey = '';
 let selectedChapter = null;
+let selectedSection = null;
 let userLevel = 'intermediate'; // beginner / intermediate / advanced
 let diagnosticScore = 0;
 let currentQuestions = [];
@@ -531,6 +652,7 @@ let sessionCorrect = 0;
 let sessionTotal = 0;
 let incorrectQuestions = []; // for retry
 let mainRound = 0;
+let cachedDiagnosticQs = null;
 
 // ═══════════════════════════════════════
 // NAVIGATION
@@ -583,21 +705,68 @@ function renderChapters() {
   });
 }
 
-async function selectChapter(ch) {
+function selectChapter(ch) {
   selectedChapter = ch;
+  selectedSection = null;
+
+  const list = document.getElementById('section-list');
+  list.innerHTML = `
+    <div class="section-label">Ch ${ch.num}: ${ch.name}</div>
+    <div class="chapter-item" onclick="selectSection(null)" style="margin-bottom:8px;">
+      <div class="chapter-num" style="background:var(--accent);color:#fff;">∑</div>
+      <div class="chapter-info">
+        <div class="chapter-name">Entire Chapter</div>
+        <div class="chapter-part">All topics combined</div>
+      </div>
+      <div class="chapter-arrow">›</div>
+    </div>
+    <div class="section-label" style="margin-top:16px;">Or pick a section</div>
+  `;
+
+  ch.sections.forEach(sec => {
+    const el = document.createElement('div');
+    el.className = 'chapter-item';
+    el.innerHTML = `
+      <div class="chapter-num" style="font-size:11px;">${sec.id}</div>
+      <div class="chapter-info">
+        <div class="chapter-name">${sec.name}</div>
+        <div class="chapter-part">${sec.topics.split(',').slice(0,2).join(',')}</div>
+      </div>
+      <div class="chapter-arrow">›</div>
+    `;
+    el.onclick = () => selectSection(sec);
+    list.appendChild(el);
+  });
+
+  goTo('screen-sections');
+}
+
+async function selectSection(sec) {
+  selectedSection = sec;
   diagnosticScore = 0;
   sessionCorrect = 0;
   sessionTotal = 0;
   incorrectQuestions = [];
   mainRound = 0;
+  cachedDiagnosticQs = null;
+
+  // Target: section seçildiyse section, yoksa chapter
+  const target = sec
+    ? { ...sec, sectionName: `${selectedChapter.name} — ${sec.name}` }
+    : selectedChapter;
 
   goTo('screen-loading');
-  document.getElementById('loading-text').textContent = 'Generating chapter summary…';
+  document.getElementById('loading-text').textContent = 'Loading…';
 
-  const summary = await callClaude(buildSummaryPrompt(ch));
-  if (!summary) return;
+  const [summary, qs] = await Promise.all([
+    callClaude(buildSummaryPrompt(target)),
+    callClaudeJSON(buildDiagnosticPrompt(target))
+  ]);
+  if (!summary || !qs) return;
 
-  document.getElementById('chapter-title-display').textContent = `Ch ${ch.num}: ${ch.name}`;
+  cachedDiagnosticQs = qs;
+  const displayName = sec ? `${sec.id}: ${sec.name}` : `Ch ${selectedChapter.num}: ${selectedChapter.name}`;
+  document.getElementById('chapter-title-display').textContent = displayName;
   document.getElementById('summary-content').innerHTML = formatSummary(summary);
   goTo('screen-summary');
 }
@@ -606,14 +775,8 @@ async function selectChapter(ch) {
 // DIAGNOSTIC
 // ═══════════════════════════════════════
 async function startDiagnostic() {
-  goTo('screen-loading');
-  document.getElementById('loading-text').textContent = 'Preparing level check…';
-
-  const qs = await callClaudeJSON(buildDiagnosticPrompt(selectedChapter));
-  if (!qs) return;
-
   phase = 'diagnostic';
-  currentQuestions = qs;
+  currentQuestions = cachedDiagnosticQs;
   currentQIndex = 0;
   diagnosticScore = 0;
 
@@ -641,7 +804,10 @@ async function startMainQuiz(questions) {
 async function loadMainQuestions() {
   goTo('screen-loading');
   document.getElementById('loading-text').textContent = `Building ${userLevel} questions…`;
-  const qs = await callClaudeJSON(buildMainPrompt(selectedChapter, userLevel));
+  const target = selectedSection
+    ? { ...selectedSection, sectionName: `${selectedChapter.name} — ${selectedSection.name}` }
+    : selectedChapter;
+  const qs = await callClaudeJSON(buildMainPrompt(target, userLevel));
   if (!qs) return;
   await startMainQuiz(qs);
 }
@@ -831,21 +997,25 @@ function confirmBack() {
 // ═══════════════════════════════════════
 // PROMPTS
 // ═══════════════════════════════════════
-function buildSummaryPrompt(ch) {
-  return `You are an expert actuarial science tutor specializing in Nonlife Actuarial Models (Yiu-Kuen Tse textbook).
+function buildSummaryPrompt(target) {
+  const name = target.sectionName || target.name;
+  const topics = target.topics;
+  return `You are an expert actuarial science tutor. Write a study summary for "${name}" from Nonlife Actuarial Models (Tse textbook).
 
-Write a concise but comprehensive study summary for Chapter ${ch.num}: "${ch.name}".
+Key topics: ${topics}
 
-Key topics: ${ch.topics}
+TONE: Write like you're explaining to a smart colleague, not a textbook. Ground every concept in a real-world insurance scenario. For each concept, briefly show HOW it appears in actual insurance practice (e.g. "An insurer uses Poisson to forecast daily motor claims because..."). Make it intuitive and memorable.
 
-Format your response as clean HTML (use <h3> for subsection headings, <p> for paragraphs, <ul>/<li> for lists). Keep it focused, exam-oriented, and under 400 words. No preamble — start directly with the content.`;
+Format as clean HTML (<h3> for subsections, <p> for paragraphs, <ul>/<li> for lists). Under 350 words. No preamble — start directly.`;
 }
 
-function buildDiagnosticPrompt(ch) {
-  return `You are an expert actuarial science tutor. Generate exactly 3 diagnostic multiple-choice questions for Chapter ${ch.num}: "${ch.name}" from Nonlife Actuarial Models (Tse textbook).
+function buildDiagnosticPrompt(target) {
+  const name = target.sectionName || target.name;
+  const topics = target.topics;
+  return `You are an expert actuarial science tutor. Generate exactly 3 diagnostic multiple-choice questions for "${name}" from Nonlife Actuarial Models (Tse textbook).
 
 These questions test EXISTING knowledge before studying — mix easy, medium, hard.
-Topics: ${ch.topics}
+Topics: ${topics}
 
 Return ONLY a valid JSON array, no markdown, no explanation:
 [
@@ -860,16 +1030,18 @@ Return ONLY a valid JSON array, no markdown, no explanation:
 "correct" is the 0-based index of the correct option. Generate exactly 3 questions.`;
 }
 
-function buildMainPrompt(ch, level) {
+function buildMainPrompt(target, level) {
+  const name = target.sectionName || target.name;
+  const topics = target.topics;
   const levelDesc = {
     beginner: 'basic conceptual understanding, definitions, simple calculations',
     intermediate: 'moderate difficulty, multi-step problems, applying formulas',
     advanced: 'challenging exam-style questions, complex calculations, edge cases',
   };
-  return `You are an expert actuarial science tutor. Generate exactly 5 ${level}-level multiple-choice questions for Chapter ${ch.num}: "${ch.name}" from Nonlife Actuarial Models (Tse textbook).
+  return `You are an expert actuarial science tutor. Generate exactly 5 ${level}-level multiple-choice questions for "${name}" from Nonlife Actuarial Models (Tse textbook).
 
 Level focus: ${levelDesc[level]}
-Topics: ${ch.topics}
+Topics: ${topics}
 
 Return ONLY a valid JSON array, no markdown, no explanation:
 [
@@ -881,7 +1053,7 @@ Return ONLY a valid JSON array, no markdown, no explanation:
   }
 ]
 
-"correct" is the 0-based index. Generate exactly 5 questions, varied across the chapter topics.`;
+"correct" is the 0-based index. Generate exactly 5 questions.`;
 }
 
 // ═══════════════════════════════════════
@@ -894,7 +1066,7 @@ async function callClaude(prompt) {
       headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
+        max_tokens: 800,
         messages: [{ role: 'user', content: prompt }]
       })
     });
