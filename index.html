@@ -1,1136 +1,689 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Probe</title>
+<meta name="apple-mobile-web-app-title" content="ProbeVault">
+<title>ProbeVault</title>
 <style>
   :root {
-    --bg: #0a0a0f;
-    --surface: #13131a;
-    --surface2: #1c1c26;
-    --border: #2a2a38;
-    --accent: #7b6ef6;
-    --accent2: #a78bfa;
-    --text: #f0f0f8;
-    --muted: #8888aa;
-    --success: #34d399;
-    --danger: #f87171;
-    --warning: #fbbf24;
-    --radius: 16px;
-    --safe-top: env(safe-area-inset-top, 20px);
-    --safe-bottom: env(safe-area-inset-bottom, 20px);
+    --bg:#0a0a0f; --surface:#14141c; --surface2:#1d1d28; --surface3:#252533;
+    --border:#2c2c3a; --accent:#5b9bf6; --accent2:#7db4ff;
+    --text:#f0f0f8; --muted:#8a8aa3; --success:#34d399; --danger:#f87171; --warning:#fbbf24;
+    --radius:16px; --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
   }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{overscroll-behavior:none;}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;min-height:100dvh;overflow-x:hidden;}
+  .screen{display:none;flex-direction:column;min-height:100dvh;padding-top:var(--safe-top);}
+  .screen.active{display:flex;}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  /* TOPBAR */
+  .topbar{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:rgba(10,10,15,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:sticky;top:0;z-index:50;}
+  .logo{font-size:19px;font-weight:700;letter-spacing:-0.4px;background:linear-gradient(135deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .topbar-meta{margin-left:auto;font-size:13px;color:var(--muted);}
+  .icon-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:10px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .icon-btn:active{background:var(--surface3);}
+  .back-btn{background:none;border:none;color:var(--accent2);font-size:16px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:2px 0;}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-    min-height: 100dvh;
-    overflow-x: hidden;
-  }
+  /* SETUP */
+  .setup-wrap{flex:1;display:flex;flex-direction:column;padding:0 20px calc(var(--safe-bottom) + 20px);overflow-y:auto;}
+  .hero{padding:44px 0 28px;}
+  .hero h1{font-size:32px;font-weight:800;letter-spacing:-0.8px;line-height:1.1;margin-bottom:12px;}
+  .hero h1 span{color:var(--accent2);}
+  .hero p{font-size:15px;color:var(--muted);line-height:1.6;}
+  .step-label{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin:18px 0 10px;}
+  .drop-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:24px 20px;text-align:center;cursor:pointer;background:var(--surface);transition:border-color 0.2s,background 0.2s;}
+  .drop-zone:active{border-color:var(--accent);background:rgba(91,155,246,0.06);}
+  .drop-zone.loaded{border-color:var(--success);border-style:solid;background:rgba(52,211,153,0.05);}
+  .drop-icon{font-size:30px;margin-bottom:8px;}
+  .drop-title{font-size:15px;font-weight:600;margin-bottom:3px;}
+  .drop-sub{font-size:13px;color:var(--muted);}
+  input[type=file]{display:none;}
+  .key-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;color:var(--text);font-size:15px;outline:none;-webkit-appearance:none;}
+  .key-input:focus{border-color:var(--accent);}
+  .start-btn{width:100%;padding:16px;margin-top:24px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:16px;font-weight:600;cursor:pointer;transition:opacity 0.15s;}
+  .start-btn:disabled{opacity:0.3;}
+  .start-btn:active:not(:disabled){opacity:0.8;}
+  .hint{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.6;text-align:center;}
 
-  /* ── SCREENS ── */
-  .screen { display: none; flex-direction: column; min-height: 100dvh; padding: var(--safe-top) 0 var(--safe-bottom); }
-  .screen.active { display: flex; }
+  /* FILTERS */
+  .filters{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;border-bottom:1px solid var(--border);position:sticky;top:61px;background:var(--bg);z-index:40;}
+  .filters::-webkit-scrollbar{display:none;}
+  .chip{padding:7px 14px;border-radius:20px;font-size:13px;font-weight:500;background:var(--surface2);border:1px solid var(--border);color:var(--muted);white-space:nowrap;cursor:pointer;flex-shrink:0;}
+  .chip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 
-  /* ── HEADER ── */
-  .header {
-    padding: 16px 20px 12px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .header-logo {
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    background: linear-gradient(135deg, var(--accent2), var(--accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .header-sub { font-size: 13px; color: var(--muted); margin-left: auto; }
+  /* LIST */
+  .q-list{flex:1;overflow-y:auto;padding:12px 16px calc(var(--safe-bottom) + 20px);}
+  .q-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px;cursor:pointer;transition:background 0.15s;position:relative;}
+  .q-card:active{background:var(--surface2);}
+  .q-card-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .q-num{font-size:12px;font-weight:700;color:var(--accent2);}
+  .q-badges{margin-left:auto;display:flex;gap:6px;align-items:center;}
+  .badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;text-transform:uppercase;letter-spacing:0.5px;}
+  .badge-kolay{background:rgba(52,211,153,0.15);color:var(--success);}
+  .badge-orta{background:rgba(251,191,36,0.15);color:var(--warning);}
+  .badge-zor{background:rgba(248,113,113,0.15);color:var(--danger);}
+  .badge-warn{background:rgba(248,113,113,0.2);color:#fca5a5;}
+  .mark-dot{font-size:14px;}
+  .q-konu{font-size:14px;font-weight:600;line-height:1.4;margin-bottom:6px;}
+  .q-preview{font-size:13px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .q-file{font-size:11px;color:var(--muted);margin-top:8px;opacity:0.7;}
 
-  /* ── BACK BTN ── */
-  .back-btn {
-    background: none;
-    border: none;
-    color: var(--accent2);
-    font-size: 15px;
-    cursor: pointer;
-    padding: 4px 0;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+  /* STAGE FLOW */
+  .stage-scroll{flex:1;overflow-y:auto;padding:16px 16px calc(var(--safe-bottom) + 40px);}
+  .stage-tabs{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid var(--border);position:sticky;top:61px;background:var(--bg);z-index:40;}
+  .stage-tab{flex:1;text-align:center;padding:10px 4px;border-radius:10px;font-size:12px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;}
+  .stage-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .stage-tab.done{border-color:var(--success);color:var(--success);}
+  .stage-tab.done.active{background:var(--success);color:#fff;}
 
-  /* ── SCROLL CONTENT ── */
-  .scroll-content { flex: 1; overflow-y: auto; padding: 0 20px 24px; -webkit-overflow-scrolling: touch; }
+  .detail-konu{font-size:18px;font-weight:700;line-height:1.3;margin:4px 0 12px;}
+  .detail-badges{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
 
-  /* ── SECTION TITLE ── */
-  .section-label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin: 24px 0 10px;
-  }
+  /* LEARN */
+  .learn-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;line-height:1.7;font-size:15px;}
+  .learn-box h3{font-size:16px;color:var(--accent2);margin:14px 0 8px;}
+  .learn-box h3:first-child{margin-top:0;}
+  .learn-box p{margin-bottom:10px;}
+  .learn-box ul{padding-left:20px;margin-bottom:10px;}
+  .learn-box li{margin-bottom:6px;}
+  .learn-box strong{color:var(--text);}
+  .real-world-box{background:linear-gradient(135deg,rgba(91,155,246,0.1),rgba(125,180,255,0.04));border:1px solid rgba(91,155,246,0.25);border-left:3px solid var(--accent2);border-radius:12px;padding:14px 16px;margin-top:16px;}
+  .rw-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent2);margin-bottom:8px;}
+  .real-world-box p{font-size:14px;line-height:1.65;color:#d4d4f0;margin:0;}
 
-  /* ── CARD ── */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 10px;
-  }
-  .card-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-  .card-sub { font-size: 13px; color: var(--muted); }
+  /* QUIZ */
+  .quiz-q{font-size:16px;line-height:1.6;font-weight:500;margin-bottom:18px;}
+  .opt{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;cursor:pointer;display:flex;gap:12px;font-size:15px;line-height:1.5;transition:border-color 0.15s,background 0.15s;}
+  .opt:active{background:var(--surface2);}
+  .opt.sel{border-color:var(--accent);background:rgba(91,155,246,0.1);}
+  .opt.correct{border-color:var(--success);background:rgba(52,211,153,0.1);}
+  .opt.wrong{border-color:var(--danger);background:rgba(248,113,113,0.1);}
+  .opt-l{width:24px;height:24px;border-radius:7px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--muted);flex-shrink:0;}
+  .opt.sel .opt-l{background:var(--accent);color:#fff;}
+  .opt.correct .opt-l{background:var(--success);color:#fff;}
+  .opt.wrong .opt-l{background:var(--danger);color:#fff;}
+  .fb{border-radius:14px;padding:14px 16px;margin:8px 0;font-size:14px;line-height:1.6;display:none;}
+  .fb.show{display:block;}
+  .fb.correct{background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:var(--success);}
+  .fb.wrong{background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#fca5a5;}
+  .q-progress{height:3px;background:var(--border);border-radius:2px;margin-bottom:18px;overflow:hidden;}
+  .q-progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width 0.3s;}
+  .quiz-counter{font-size:13px;color:var(--muted);margin-bottom:8px;}
 
-  /* ── CHAPTER LIST ── */
-  .chapter-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin-bottom: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    transition: border-color 0.15s, background 0.15s;
-  }
-  .chapter-item:active { background: var(--surface2); }
-  .chapter-item.selected { border-color: var(--accent); background: rgba(123,110,246,0.08); }
-  .chapter-num {
-    width: 36px; height: 36px;
-    border-radius: 10px;
-    background: var(--surface2);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 700; color: var(--accent2);
-    flex-shrink: 0;
-  }
-  .chapter-item.selected .chapter-num { background: var(--accent); color: #fff; }
-  .chapter-info { flex: 1; }
-  .chapter-name { font-size: 15px; font-weight: 500; }
-  .chapter-part { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .chapter-arrow { color: var(--muted); font-size: 16px; }
+  /* IMAGE */
+  .q-image-wrap{border-radius:12px;overflow:hidden;margin-bottom:16px;border:1px solid var(--border);background:#fff;width:100%;cursor:zoom-in;position:relative;}
+  .q-image-wrap img{width:100%;height:auto;display:block;object-fit:contain;}
+  .zoom-hint{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.6);color:#fff;font-size:11px;padding:4px 8px;border-radius:8px;pointer-events:none;}
+  .q-image-missing{padding:28px 16px;text-align:center;color:var(--muted);font-size:13px;background:var(--surface);border:1px dashed var(--border);border-radius:12px;margin-bottom:16px;line-height:1.6;}
 
-  /* ── PRIMARY BTN ── */
-  .btn-primary {
-    width: 100%;
-    padding: 16px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: var(--radius);
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: opacity 0.15s;
-  }
-  .btn-primary:disabled { opacity: 0.35; }
-  .btn-primary:active:not(:disabled) { opacity: 0.8; }
+  /* REVEAL */
+  .reveal-btn{width:100%;padding:14px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:12px;border:1px solid var(--border);background:var(--surface2);color:var(--accent2);transition:background 0.15s;}
+  .reveal-btn:active{background:var(--surface3);}
+  .section-block{margin-bottom:16px;display:none;}
+  .section-block.show{display:block;animation:fade 0.25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .block-head{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+  .step{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:12px 14px;margin-bottom:8px;font-size:14px;line-height:1.65;white-space:pre-wrap;}
+  .sonuc-box{background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.3);border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.6;}
+  .sonuc-box .sl{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--success);margin-bottom:6px;}
+  .bil-box{background:linear-gradient(135deg,rgba(91,155,246,0.1),rgba(125,180,255,0.04));border:1px solid rgba(91,155,246,0.25);border-left:3px solid var(--accent2);border-radius:12px;padding:14px 16px;}
+  .bil-box .bl{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent2);margin-bottom:10px;}
+  .bil-box ul{margin:0;padding-left:18px;}
+  .bil-box li{font-size:14px;line-height:1.6;margin-bottom:8px;}
+  .anahtar-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:16px;}
+  .anahtar-row{display:flex;justify-content:space-between;align-items:center;font-size:14px;padding:4px 0;}
+  .anahtar-row .lbl{color:var(--muted);}
+  .anahtar-row .val{font-weight:600;}
+  .uyari-not{font-size:13px;color:#fca5a5;line-height:1.6;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+  .keywords{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+  .kw{font-size:12px;padding:5px 10px;border-radius:14px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
 
-  .btn-secondary {
-    width: 100%;
-    padding: 14px;
-    background: var(--surface);
-    color: var(--accent2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: opacity 0.15s;
-  }
-  .btn-secondary:active { opacity: 0.7; }
+  /* MARK BUTTONS */
+  .mark-row{display:flex;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border);}
+  .mark-btn{flex:1;padding:14px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);transition:all 0.15s;}
+  .mark-btn.anladim{color:var(--success);}
+  .mark-btn.anladim.active{background:rgba(52,211,153,0.15);border-color:var(--success);}
+  .mark-btn.tekrar{color:var(--warning);}
+  .mark-btn.tekrar.active{background:rgba(251,191,36,0.15);border-color:var(--warning);}
 
-  /* ── LOADING ── */
-  .loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; gap: 16px; }
-  .spinner {
-    width: 40px; height: 40px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading-text { font-size: 14px; color: var(--muted); }
+  .primary-btn{width:100%;padding:16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:16px;font-weight:600;cursor:pointer;margin-top:8px;}
+  .primary-btn:active{opacity:0.8;}
+  .primary-btn:disabled{opacity:0.3;}
+  .secondary-btn{width:100%;padding:14px;background:var(--surface);color:var(--accent2);border:1px solid var(--border);border-radius:var(--radius);font-size:15px;font-weight:500;cursor:pointer;margin-top:8px;}
 
-  /* ── SUMMARY ── */
-  .summary-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    line-height: 1.7;
-    font-size: 15px;
-    color: var(--text);
-  }
-  .summary-box h3 { font-size: 17px; margin-bottom: 12px; color: var(--accent2); }
+  /* LOADING */
+  .loading-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:16px;}
+  .spinner{width:38px;height:38px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loading-text{font-size:14px;color:var(--muted);text-align:center;}
 
-  /* ── LEVEL BADGE ── */
-  .level-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
-    margin: 12px 0;
-  }
-  .level-beginner { background: rgba(52,211,153,0.15); color: var(--success); }
-  .level-intermediate { background: rgba(251,191,36,0.15); color: var(--warning); }
-  .level-advanced { background: rgba(248,113,113,0.15); color: var(--danger); }
+  /* IMG MODAL */
+  .img-modal{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.95);flex-direction:column;}
+  .img-modal.show{display:flex;}
+  .img-modal-bar{display:flex;align-items:center;justify-content:flex-end;padding:calc(var(--safe-top) + 8px) 16px 8px;}
+  .img-modal-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:40px;height:40px;border-radius:20px;font-size:22px;cursor:pointer;}
+  .img-modal-scroll{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;-webkit-overflow-scrolling:touch;}
+  .img-modal-scroll img{width:100%;height:auto;display:block;background:#fff;}
 
-  /* ── QUESTION CARD ── */
-  .question-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-  }
-  .q-counter { font-size: 13px; color: var(--muted); }
-  .q-progress {
-    height: 3px;
-    background: var(--border);
-    border-radius: 2px;
-    margin-bottom: 20px;
-    overflow: hidden;
-  }
-  .q-progress-fill {
-    height: 100%;
-    background: var(--accent);
-    border-radius: 2px;
-    transition: width 0.3s ease;
-  }
+  .empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
+  .empty-state .ei{font-size:40px;margin-bottom:12px;}
 
-  .question-text {
-    font-size: 16px;
-    line-height: 1.6;
-    margin-bottom: 20px;
-    font-weight: 500;
-  }
+  .toast{position:fixed;bottom:calc(var(--safe-bottom) + 80px);left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--border);border-radius:20px;padding:10px 20px;font-size:14px;color:var(--text);opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;z-index:998;}
+  .toast.show{opacity:1;}
 
-  /* ── OPTIONS ── */
-  .option-item {
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 14px;
-    padding: 14px 16px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    transition: border-color 0.15s, background 0.15s;
-    font-size: 15px;
-    line-height: 1.5;
-  }
-  .option-item:active { background: var(--surface2); }
-  .option-item.selected { border-color: var(--accent); background: rgba(123,110,246,0.1); }
-  .option-item.correct { border-color: var(--success); background: rgba(52,211,153,0.1); }
-  .option-item.wrong { border-color: var(--danger); background: rgba(248,113,113,0.1); }
-  .option-item.disabled { cursor: default; }
-
-  .opt-label {
-    width: 24px; height: 24px;
-    border-radius: 7px;
-    background: var(--surface2);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 700;
-    color: var(--muted);
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-  .option-item.selected .opt-label { background: var(--accent); color: #fff; }
-  .option-item.correct .opt-label { background: var(--success); color: #fff; }
-  .option-item.wrong .opt-label { background: var(--danger); color: #fff; }
-
-  /* ── FEEDBACK ── */
-  .feedback-box {
-    border-radius: 14px;
-    padding: 14px 16px;
-    margin-top: 8px;
-    margin-bottom: 8px;
-    font-size: 14px;
-    line-height: 1.6;
-    display: none;
-  }
-  .feedback-box.show { display: block; }
-  .feedback-box.correct { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.3); color: var(--success); }
-  .feedback-box.wrong { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: #fca5a5; }
-  .feedback-title { font-weight: 700; margin-bottom-4px; }
-
-  /* ── RESULT SCREEN ── */
-  .result-big {
-    text-align: center;
-    padding: 32px 0 24px;
-  }
-  .result-emoji { font-size: 56px; margin-bottom: 12px; }
-  .result-score { font-size: 42px; font-weight: 800; color: var(--accent2); }
-  .result-label { font-size: 15px; color: var(--muted); margin-top: 4px; }
-
-  .result-breakdown {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px;
-    margin: 16px 0;
-  }
-  .breakdown-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 14px;
-  }
-  .breakdown-row:last-child { border-bottom: none; }
-  .breakdown-label { color: var(--muted); }
-  .breakdown-val { font-weight: 600; }
-  .breakdown-val.green { color: var(--success); }
-  .breakdown-val.red { color: var(--danger); }
-
-  /* ── API KEY SCREEN ── */
-  .upload-zone {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius);
-    padding: 36px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-    background: var(--surface);
-  }
-  .upload-zone:active, .upload-zone.dragover {
-    border-color: var(--accent);
-    background: rgba(123,110,246,0.08);
-  }
-  .upload-zone.loaded {
-    border-color: var(--success);
-    background: rgba(52,211,153,0.06);
-  }
-  .upload-icon { font-size: 36px; margin-bottom: 10px; }
-  .upload-label { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
-  .upload-sub { font-size: 13px; color: var(--muted); }
-  #file-input { display: none; }
-
-  /* ── TOAST ── */
-  .toast {
-    position: fixed;
-    bottom: calc(var(--safe-bottom) + 80px);
-    left: 50%; transform: translateX(-50%);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 10px 20px;
-    font-size: 14px;
-    color: var(--text);
-    opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
-    white-space: nowrap;
-    z-index: 999;
-  }
-  .toast.show { opacity: 1; }
-
-  /* ── STICKY BTN ── */
-  .sticky-btn {
-    padding: 12px 20px calc(var(--safe-bottom) + 8px);
-    background: linear-gradient(to top, var(--bg) 70%, transparent);
-    position: sticky;
-    bottom: 0;
-  }
-
-  /* ── PHASE TAG ── */
-  .phase-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    color: var(--accent2);
-    background: rgba(123,110,246,0.12);
-    padding: 5px 10px;
-    border-radius: 20px;
-    margin-bottom: 12px;
-  }
-
-  /* ── DIAGNOSTIC INTRO ── */
-  .diag-intro {
-    background: linear-gradient(135deg, rgba(123,110,246,0.15), rgba(167,139,250,0.08));
-    border: 1px solid rgba(123,110,246,0.25);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin: 8px 0 16px;
-  }
-  .diag-intro h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
-  .diag-intro p { font-size: 14px; color: #c4c4d8; line-height: 1.6; }
-
-  /* ── REAL WORLD BOX ── */
-  .real-world-box {
-    background: linear-gradient(135deg, rgba(167,139,250,0.12), rgba(123,110,246,0.06));
-    border: 1px solid rgba(167,139,250,0.3);
-    border-left: 3px solid var(--accent2);
-    border-radius: 12px;
-    padding: 14px 16px;
-    margin-top: 16px;
-  }
-  .rw-label {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--accent2);
-    margin-bottom: 8px;
-  }
-  .real-world-box p {
-    font-size: 14px;
-    line-height: 1.65;
-    color: #d4d4f0;
-    margin: 0;
-  }
-
-  /* scrollbar hide */
-  ::-webkit-scrollbar { display: none; }
+  ::-webkit-scrollbar{display:none;}
 </style>
 </head>
 <body>
 
-<!-- ═══════════════ SCREEN: API KEY ═══════════════ -->
-<div class="screen active" id="screen-key">
-  <div class="header">
-    <div class="header-logo">Probe</div>
-  </div>
-  <div class="scroll-content">
-    <div style="padding-top: 20px;">
-      <div style="font-size: 28px; font-weight: 800; margin-bottom: 8px; letter-spacing: -0.5px;">
-        Deep dive.<br>
-        <span style="color: var(--accent2);">Understand it.</span>
-      </div>
-      <p style="font-size: 15px; color: var(--muted); line-height: 1.6; margin-bottom: 32px;">
-        Adaptive study for Nonlife Actuarial Models — powered by AI that learns your level.
-      </p>
-
-      <div class="section-label">API Key</div>
-      <input type="file" id="file-input" accept=".txt" onchange="handleFileUpload(event)">
-      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
-        <div class="upload-icon">📄</div>
-        <div class="upload-label" id="upload-label">Upload your key file</div>
-        <div class="upload-sub" id="upload-sub">Tap to select a .txt file</div>
-      </div>
-      <p style="font-size: 12px; color: var(--muted); margin-top: 10px; line-height: 1.5;">
-        Key is only held in memory. Cleared when you close the app.
-      </p>
+<!-- ═══════════ SETUP ═══════════ -->
+<div class="screen active" id="screen-setup">
+  <div class="setup-wrap">
+    <div class="hero">
+      <h1>Probe<span>Vault</span></h1>
+      <p>Çıkmış soruyu seç, önce hazırlan, kısa testi geç, sonra gerçek soruyu çöz. Her şey lokal.</p>
     </div>
-  </div>
-  <div class="sticky-btn">
-    <button class="btn-primary" id="continue-btn" disabled onclick="startApp()">Continue →</button>
-  </div>
-</div>
 
-<!-- ═══════════════ SCREEN: CHAPTER SELECT ═══════════════ -->
-<div class="screen" id="screen-chapters">
-  <div class="header">
-    <div class="header-logo">Probe</div>
-    <div class="header-sub">Nonlife Actuarial Models</div>
-  </div>
-  <div class="scroll-content" id="chapter-list">
-    <div class="section-label">Select a chapter to probe</div>
-    <!-- injected -->
-  </div>
-</div>
-
-<!-- ═══════════════ SCREEN: SECTION SELECT ═══════════════ -->
-<div class="screen" id="screen-sections">
-  <div class="header">
-    <button class="back-btn" onclick="goTo('screen-chapters')">← Chapters</button>
-  </div>
-  <div class="scroll-content" id="section-list">
-    <!-- injected -->
-  </div>
-</div>
-
-<!-- ═══════════════ SCREEN: LOADING ═══════════════ -->
-<div class="screen" id="screen-loading">
-  <div class="loading-wrap">
-    <div class="spinner"></div>
-    <div class="loading-text" id="loading-text">Generating summary…</div>
-  </div>
-</div>
-
-<!-- ═══════════════ SCREEN: SUMMARY ═══════════════ -->
-<div class="screen" id="screen-summary">
-  <div class="header">
-    <button class="back-btn" onclick="goTo('screen-chapters')">← Back</button>
-  </div>
-  <div class="scroll-content">
-    <div class="phase-tag">📖 Chapter Summary</div>
-    <div id="chapter-title-display" style="font-size: 20px; font-weight: 700; margin-bottom: 16px;"></div>
-    <div class="summary-box" id="summary-content"></div>
-    <div class="diag-intro" style="margin-top: 20px;">
-      <h3>🎯 Level Check</h3>
-      <p>Before the main session, answer 3 quick questions. Your results calibrate the difficulty for your personalized quiz.</p>
+    <div class="step-label">1 — API Anahtarı (.txt)</div>
+    <input type="file" id="key-input" accept=".txt" onchange="loadKey(event)">
+    <div class="drop-zone" id="key-zone" onclick="document.getElementById('key-input').click()">
+      <div class="drop-icon">🔑</div>
+      <div class="drop-title" id="key-title">key.txt seç</div>
+      <div class="drop-sub" id="key-sub">Anahtar dosyanı yükle</div>
     </div>
-  </div>
-  <div class="sticky-btn">
-    <button class="btn-primary" onclick="startDiagnostic()">Start Level Check →</button>
-  </div>
-</div>
 
-<!-- ═══════════════ SCREEN: QUIZ ═══════════════ -->
-<div class="screen" id="screen-quiz">
-  <div class="header">
-    <button class="back-btn" onclick="confirmBack()">← Exit</button>
-    <div id="quiz-phase-label" class="phase-tag" style="margin: 0;">Diagnostic</div>
-  </div>
-  <div class="scroll-content">
-    <div class="q-progress"><div class="q-progress-fill" id="q-progress-fill" style="width:0%"></div></div>
-    <div class="question-header">
-      <span class="q-counter" id="q-counter">Question 1 of 3</span>
-      <span id="level-display"></span>
+    <div class="step-label">2 — Çözüm Dosyası (JSON)</div>
+    <input type="file" id="json-input" accept=".json" onchange="loadJson(event)">
+    <div class="drop-zone" id="json-zone" onclick="document.getElementById('json-input').click()">
+      <div class="drop-icon">📋</div>
+      <div class="drop-title" id="json-title">output.json seç</div>
+      <div class="drop-sub" id="json-sub">Çözümler ve hazırlık verisi</div>
     </div>
-    <div class="question-text" id="question-text"></div>
-    <div id="options-container"></div>
-    <div class="feedback-box" id="feedback-box"></div>
-  </div>
-  <div class="sticky-btn">
-    <button class="btn-primary" id="next-btn" style="display:none;" onclick="nextQuestion()">Next →</button>
-  </div>
-</div>
 
-<!-- ═══════════════ SCREEN: RESULT ═══════════════ -->
-<div class="screen" id="screen-result">
-  <div class="header">
-    <button class="back-btn" onclick="goTo('screen-chapters')">← Chapters</button>
-  </div>
-  <div class="scroll-content">
-    <div class="result-big">
-      <div class="result-emoji" id="result-emoji">🎉</div>
-      <div class="result-score" id="result-score">5/5</div>
-      <div class="result-label" id="result-label">Excellent work!</div>
+    <div class="step-label">3 — Soru Görselleri (PNG)</div>
+    <input type="file" id="png-input" accept="image/*" multiple onchange="loadPngs(event)">
+    <div class="drop-zone" id="png-zone" onclick="document.getElementById('png-input').click()">
+      <div class="drop-icon">🖼️</div>
+      <div class="drop-title" id="png-title">PNG'leri seç</div>
+      <div class="drop-sub" id="png-sub">Tüm soru görsellerini birden</div>
     </div>
-    <div class="result-breakdown" id="result-breakdown"></div>
-    <div id="result-actions"></div>
+
+    <button class="start-btn" id="start-btn" disabled onclick="enterApp()">Başla →</button>
+    <p class="hint">API + JSON zorunlu. Görseller olmadan da çalışır (soru metin gösterilir).</p>
   </div>
 </div>
 
-<!-- TOAST -->
+<!-- ═══════════ LIST ═══════════ -->
+<div class="screen" id="screen-list">
+  <div class="topbar">
+    <div class="logo">ProbeVault</div>
+    <div class="topbar-meta" id="list-count"></div>
+    <button class="icon-btn" onclick="goSetup()" title="Yeni dosya">↻</button>
+  </div>
+  <div class="filters" id="filters"></div>
+  <div class="q-list" id="q-list"></div>
+</div>
+
+<!-- ═══════════ STAGE (öğren/test/çöz) ═══════════ -->
+<div class="screen" id="screen-stage">
+  <div class="topbar">
+    <button class="back-btn" onclick="goList()">‹ Sorular</button>
+    <div class="topbar-meta" id="stage-pos"></div>
+  </div>
+  <div class="stage-tabs">
+    <div class="stage-tab" id="tab-learn" onclick="switchStage('learn')">📖 Öğren</div>
+    <div class="stage-tab" id="tab-quiz" onclick="switchStage('quiz')">🎯 Test</div>
+    <div class="stage-tab" id="tab-solve" onclick="switchStage('solve')">📝 Çöz</div>
+  </div>
+  <div class="stage-scroll" id="stage-scroll"></div>
+</div>
+
+<!-- ═══════════ IMG MODAL ═══════════ -->
+<div class="img-modal" id="img-modal">
+  <div class="img-modal-bar"><button class="img-modal-close" onclick="closeZoom()">✕</button></div>
+  <div class="img-modal-scroll" id="img-modal-scroll"><img id="img-modal-img" src="" alt="soru"></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════
-// DATA
-// ═══════════════════════════════════════
-const CHAPTERS = [
-  { num: 1, name: "Claim-Frequency Distribution", part: "Part I · Loss Models", topics: "Binomial, Poisson, Negative Binomial, (a,b,0) class, compound & mixture distributions",
-    sections: [
-      { id: "1.3.1", name: "Binomial Distribution", topics: "binomial distribution for claim frequency, n trials, fixed probability" },
-      { id: "1.3.2", name: "Geometric Distribution", topics: "geometric distribution, memoryless property, claim modeling" },
-      { id: "1.3.3", name: "Negative Binomial Distribution", topics: "negative binomial, overdispersion, mixed Poisson" },
-      { id: "1.3.4", name: "Poisson Distribution", topics: "Poisson distribution, claim frequency, lambda parameter" },
-      { id: "1.4", name: "(a, b, 0) Class", topics: "(a,b,0) class of distributions, recursive formula, Panjer class" },
-      { id: "1.5", name: "Compound & Mixture Distributions", topics: "compound distribution, mixture distribution, creating new claim frequency models" },
-    ]
-  },
-  { num: 2, name: "Claim-Severity Distribution", part: "Part I · Loss Models", topics: "Exponential, Gamma, Weibull, Pareto, coverage modifications, deductibles, policy limits",
-    sections: [
-      { id: "2.2.1", name: "Exponential Distribution", topics: "exponential distribution, memoryless property, claim severity" },
-      { id: "2.2.2", name: "Gamma Distribution", topics: "gamma distribution, shape and scale parameters, aggregate losses" },
-      { id: "2.2.3", name: "Weibull Distribution", topics: "Weibull distribution, heavy tail, failure rate modeling" },
-      { id: "2.2.4", name: "Pareto Distribution", topics: "Pareto distribution, heavy tail, large claim modeling" },
-      { id: "2.4", name: "Tail Properties", topics: "tail weight, limited expected value, excess loss variable" },
-      { id: "2.5", name: "Coverage Modifications", topics: "deductible, policy limit, coinsurance, inflation effects" },
-    ]
-  },
-  { num: 3, name: "Aggregate-Loss Models", part: "Part I · Loss Models", topics: "Individual & collective risk models, Panjer recursion, De Pril recursion, stop-loss reinsurance",
-    sections: [
-      { id: "3.2", name: "Individual Risk Model", topics: "individual risk model, convolution, De Pril recursion" },
-      { id: "3.3.1", name: "Collective Risk Model — Properties", topics: "compound distribution properties, mean and variance of aggregate losses" },
-      { id: "3.3.2", name: "Panjer Recursion", topics: "Panjer recursion formula, computing aggregate loss distribution" },
-      { id: "3.3.3", name: "Approximations", topics: "normal approximation, translated gamma, aggregate loss approximations" },
-      { id: "3.4", name: "Stop-Loss Reinsurance", topics: "stop-loss reinsurance, coverage modifications on aggregate losses" },
-    ]
-  },
-  { num: 4, name: "Risk Measures", part: "Part II · Risk & Ruin", topics: "VaR, CTE, coherent risk measures, Wang transform, distortion functions, Esscher transform",
-    sections: [
-      { id: "4.2", name: "Premium-Based Risk Measures", topics: "variance principle, standard deviation principle, premium calculation" },
-      { id: "4.3", name: "Coherent Risk Measures", topics: "axioms of coherence, subadditivity, monotonicity" },
-      { id: "4.4.1", name: "Value-at-Risk (VaR)", topics: "VaR, quantile risk measure, regulatory capital" },
-      { id: "4.4.2", name: "Conditional Tail Expectation (CTE)", topics: "CTE, TVaR, expected shortfall, tail risk" },
-      { id: "4.6", name: "Distortion Functions & Wang Transform", topics: "distortion function, Wang transform, risk-adjusted premium" },
-    ]
-  },
-  { num: 5, name: "Ruin Theory", part: "Part II · Risk & Ruin", topics: "Discrete & continuous ruin, Lundberg's inequality, deficit distribution, surplus process",
-    sections: [
-      { id: "5.1", name: "Surplus Process & Ruin", topics: "surplus function, probability of ruin, ultimate ruin" },
-      { id: "5.2.3", name: "Lundberg's Inequality (Discrete)", topics: "Lundberg's inequality, adjustment coefficient, discrete time" },
-      { id: "5.3", name: "Continuous-Time Surplus", topics: "Cramér-Lundberg model, premium rate, Poisson claim arrivals" },
-      { id: "5.4.1", name: "Lundberg's Inequality (Continuous)", topics: "Lundberg's inequality continuous time, adjustment coefficient" },
-      { id: "5.4.2", name: "Distribution of Deficit", topics: "deficit at ruin, Gerber-Shiu function, severity of ruin" },
-    ]
-  },
-  { num: 6, name: "Classical Credibility", part: "Part III · Credibility", topics: "Full & partial credibility, claim frequency/severity/aggregate, Bühlmann credibility intro",
-    sections: [
-      { id: "6.2.1", name: "Full Credibility — Frequency", topics: "full credibility standard, claim frequency, number of claims needed" },
-      { id: "6.2.2", name: "Full Credibility — Severity", topics: "full credibility for claim severity, coefficient of variation" },
-      { id: "6.2.3", name: "Full Credibility — Aggregate", topics: "full credibility for aggregate losses, pure premium" },
-      { id: "6.3", name: "Partial Credibility", topics: "square root rule, partial credibility, credibility factor Z" },
-    ]
-  },
-  { num: 7, name: "Bühlmann Credibility", part: "Part III · Credibility", topics: "Bühlmann & Bühlmann-Straub models, variance components, EVPV, VHM",
-    sections: [
-      { id: "7.2", name: "Variance Components", topics: "EVPV, VHM, variance of hypothetical means, expected value of process variance" },
-      { id: "7.3", name: "Bühlmann Credibility", topics: "Bühlmann k, credibility factor, Bühlmann estimate" },
-      { id: "7.4", name: "Bühlmann-Straub Model", topics: "Bühlmann-Straub, varying exposure weights, weighted credibility" },
-    ]
-  },
-  { num: 8, name: "Bayesian Approach", part: "Part III · Credibility", topics: "Posterior distribution, conjugate priors, gamma-Poisson, beta-geometric, exact credibility",
-    sections: [
-      { id: "8.1", name: "Bayesian Inference & Estimation", topics: "prior, posterior, likelihood, loss function, Bayesian estimator" },
-      { id: "8.2.1", name: "Gamma-Poisson Conjugate", topics: "gamma prior, Poisson likelihood, gamma-Poisson conjugate pair" },
-      { id: "8.2.2", name: "Beta-Geometric Conjugate", topics: "beta prior, geometric likelihood, beta-geometric conjugate" },
-      { id: "8.3", name: "Bayesian vs Bühlmann", topics: "exact credibility, when Bayesian equals Bühlmann, linear exponential family" },
-    ]
-  },
-  { num: 9, name: "Empirical Credibility", part: "Part III · Credibility", topics: "Empirical Bayes, nonparametric & semiparametric estimation, Bühlmann parameter estimation",
-    sections: [
-      { id: "9.1", name: "Empirical Bayes Method", topics: "empirical Bayes, estimating structural parameters from data" },
-      { id: "9.2", name: "Nonparametric Estimation", topics: "nonparametric Bühlmann parameter estimation, Bühlmann-Straub estimators" },
-      { id: "9.3", name: "Semiparametric Estimation", topics: "semiparametric approach, mixing parametric and nonparametric" },
-    ]
-  },
-  { num: 10, name: "Model Estimation & Data Types", part: "Part IV · Model Construction", topics: "Complete, grouped, truncated, censored data; MLE properties, point & interval estimation",
-    sections: [
-      { id: "10.2.2", name: "Complete Individual Data", topics: "complete data, individual observations, empirical estimation" },
-      { id: "10.2.3", name: "Incomplete Data (Truncation & Censoring)", topics: "left truncation, right censoring, incomplete individual data" },
-      { id: "10.2.4", name: "Grouped Data", topics: "grouped data, interval observations, histogram" },
-      { id: "10.1.3", name: "Properties of Estimators", topics: "unbiasedness, consistency, efficiency, MLE properties" },
-    ]
-  },
-  { num: 11, name: "Nonparametric Estimation", part: "Part IV · Model Construction", topics: "Empirical distribution, Kaplan-Meier, Nelson-Aalen, kernel density estimation",
-    sections: [
-      { id: "11.1.1", name: "Empirical Distribution", topics: "empirical distribution function, complete data estimation" },
-      { id: "11.2.1", name: "Kaplan-Meier Estimator", topics: "Kaplan-Meier product-limit estimator, censored data, survival function" },
-      { id: "11.2.2", name: "Nelson-Aalen Estimator", topics: "Nelson-Aalen cumulative hazard estimator, censored data" },
-      { id: "11.1.2", name: "Kernel Density Estimation", topics: "kernel smoothing, bandwidth selection, density estimation" },
-    ]
-  },
-  { num: 12, name: "Parametric Estimation", part: "Part IV · Model Construction", topics: "MOM, percentile matching, MLE, proportional hazards, GLM, copulas",
-    sections: [
-      { id: "12.1.1", name: "Method of Moments", topics: "method of moments, matching theoretical and sample moments" },
-      { id: "12.1.2", name: "Percentile Matching", topics: "percentile matching, empirical quantiles, parameter estimation" },
-      { id: "12.3", name: "Maximum Likelihood Estimation", topics: "MLE, likelihood function, complete and grouped data MLE" },
-      { id: "12.4.1", name: "Proportional Hazards Model", topics: "Cox proportional hazards, covariates, hazard ratio" },
-      { id: "12.5", name: "Copulas", topics: "copula, joint distribution modeling, dependence structure" },
-    ]
-  },
-  { num: 13, name: "Model Evaluation & Selection", part: "Part IV · Model Construction", topics: "KS test, Anderson-Darling, chi-square, likelihood ratio, AIC, BIC",
-    sections: [
-      { id: "13.2.1", name: "Kolmogorov-Smirnov Test", topics: "KS test, maximum distance, goodness-of-fit" },
-      { id: "13.2.2", name: "Anderson-Darling Test", topics: "Anderson-Darling test, tail sensitivity, goodness-of-fit" },
-      { id: "13.2.3", name: "Chi-Square Test", topics: "chi-square goodness-of-fit, grouped data, expected frequencies" },
-      { id: "13.3", name: "Information Criteria (AIC/BIC)", topics: "AIC, BIC, model selection, penalized likelihood" },
-    ]
-  },
-  { num: 14, name: "Basic Monte Carlo Methods", part: "Part IV · Model Construction", topics: "Inversion method, acceptance-rejection, variance reduction, antithetic variables",
-    sections: [
-      { id: "14.3.1", name: "Inversion Method", topics: "inverse transform method, generating random variables from CDF" },
-      { id: "14.3.2", name: "Acceptance-Rejection Method", topics: "acceptance-rejection sampling, envelope distribution" },
-      { id: "14.6", name: "Variance Reduction Techniques", topics: "antithetic variables, control variables, importance sampling" },
-    ]
-  },
-  { num: 15, name: "Applications of Monte Carlo", part: "Part IV · Model Construction", topics: "Bootstrap, hypothesis testing, asset price simulation, Wiener process, jump-diffusion",
-    sections: [
-      { id: "15.2", name: "Bootstrap", topics: "bootstrap resampling, bias estimation, MSE estimation" },
-      { id: "15.1", name: "Monte Carlo for Hypothesis Testing", topics: "Monte Carlo p-value, KS test simulation, chi-square simulation" },
-      { id: "15.5.1", name: "Wiener Process", topics: "Wiener process, Brownian motion, stochastic process" },
-      { id: "15.5.3", name: "Jump-Diffusion Process", topics: "jump-diffusion, Poisson jumps, asset price modeling" },
-    ]
-  },
-];
+// ════════ STATE ════════
+let apiKey='';
+let questions=[];
+let pngMap={};
+let filtered=[];
+let activeFilter='hepsi';
+let currentIndex=0;       // filtered icindeki index
+let currentStage='learn';
+let marks={};             // dosya -> 'anladim' | 'tekrar'
+let learnCache={};        // dosya -> learn HTML
+let quizCache={};         // dosya -> quiz sorulari
+let quizState={};         // dosya -> {answered, correct, total}
 
-// ═══════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════
-let apiKey = '';
-let selectedChapter = null;
-let selectedSection = null;
-let userLevel = 'intermediate'; // beginner / intermediate / advanced
-let diagnosticScore = 0;
-let currentQuestions = [];
-let currentQIndex = 0;
-let phase = 'diagnostic'; // diagnostic / main
-let sessionCorrect = 0;
-let sessionTotal = 0;
-let incorrectQuestions = []; // for retry
-let mainRound = 0;
-let cachedDiagnosticQs = null;
-
-// ═══════════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════════
-function goTo(screenId) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(screenId).classList.add('active');
-  window.scrollTo(0, 0);
-}
-
-function handleFileUpload(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const key = e.target.result.trim();
-    if (!key.startsWith('sk-')) { showToast('Invalid key format'); return; }
-    apiKey = key;
-    document.getElementById('upload-zone').classList.add('loaded');
-    document.getElementById('upload-label').textContent = '✓ ' + file.name;
-    document.getElementById('upload-sub').textContent = 'Key loaded — ready to go';
-    document.getElementById('continue-btn').disabled = false;
+// ════════ DOSYA YUKLEME ════════
+function loadKey(e){
+  const file=e.target.files[0]; if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const k=ev.target.result.trim();
+    if(!k.startsWith('sk-')){document.getElementById('key-title').textContent='⚠️ Geçersiz anahtar';return;}
+    apiKey=k;
+    document.getElementById('key-zone').classList.add('loaded');
+    document.getElementById('key-title').textContent='✓ '+file.name;
+    document.getElementById('key-sub').textContent='Anahtar yüklendi';
+    checkReady();
   };
-  reader.readAsText(file);
+  r.readAsText(file);
 }
 
-
-function startApp() {
-  if (!apiKey) { showToast("Upload your key file first"); return; }
-  renderChapters();
-  goTo("screen-chapters");
-}
-
-function renderChapters() {
-  const list = document.getElementById('chapter-list');
-  list.innerHTML = '<div class="section-label">Select a chapter to probe</div>';
-  CHAPTERS.forEach(ch => {
-    const el = document.createElement('div');
-    el.className = 'chapter-item';
-    el.innerHTML = `
-      <div class="chapter-num">${ch.num}</div>
-      <div class="chapter-info">
-        <div class="chapter-name">${ch.name}</div>
-        <div class="chapter-part">${ch.part}</div>
-      </div>
-      <div class="chapter-arrow">›</div>
-    `;
-    el.onclick = () => selectChapter(ch);
-    list.appendChild(el);
-  });
-}
-
-function selectChapter(ch) {
-  selectedChapter = ch;
-  selectedSection = null;
-
-  const list = document.getElementById('section-list');
-  list.innerHTML = `
-    <div class="section-label">Ch ${ch.num}: ${ch.name}</div>
-    <div class="chapter-item" onclick="selectSection(null)" style="margin-bottom:8px;">
-      <div class="chapter-num" style="background:var(--accent);color:#fff;">∑</div>
-      <div class="chapter-info">
-        <div class="chapter-name">Entire Chapter</div>
-        <div class="chapter-part">All topics combined</div>
-      </div>
-      <div class="chapter-arrow">›</div>
-    </div>
-    <div class="section-label" style="margin-top:16px;">Or pick a section</div>
-  `;
-
-  ch.sections.forEach(sec => {
-    const el = document.createElement('div');
-    el.className = 'chapter-item';
-    el.innerHTML = `
-      <div class="chapter-num" style="font-size:11px;">${sec.id}</div>
-      <div class="chapter-info">
-        <div class="chapter-name">${sec.name}</div>
-        <div class="chapter-part">${sec.topics.split(',').slice(0,2).join(',')}</div>
-      </div>
-      <div class="chapter-arrow">›</div>
-    `;
-    el.onclick = () => selectSection(sec);
-    list.appendChild(el);
-  });
-
-  goTo('screen-sections');
-}
-
-async function selectSection(sec) {
-  selectedSection = sec;
-  diagnosticScore = 0;
-  sessionCorrect = 0;
-  sessionTotal = 0;
-  incorrectQuestions = [];
-  mainRound = 0;
-  cachedDiagnosticQs = null;
-
-  // Target: section seçildiyse section, yoksa chapter
-  const target = sec
-    ? { ...sec, sectionName: `${selectedChapter.name} — ${sec.name}` }
-    : selectedChapter;
-
-  goTo('screen-loading');
-  document.getElementById('loading-text').textContent = 'Loading…';
-
-  const [summary, qs] = await Promise.all([
-    callClaude(buildSummaryPrompt(target)),
-    callClaudeJSON(buildDiagnosticPrompt(target))
-  ]);
-  if (!summary || !qs) return;
-
-  cachedDiagnosticQs = qs;
-  const displayName = sec ? `${sec.id}: ${sec.name}` : `Ch ${selectedChapter.num}: ${selectedChapter.name}`;
-  document.getElementById('chapter-title-display').textContent = displayName;
-  document.getElementById('summary-content').innerHTML = formatSummary(summary);
-  goTo('screen-summary');
-}
-
-// ═══════════════════════════════════════
-// DIAGNOSTIC
-// ═══════════════════════════════════════
-async function startDiagnostic() {
-  phase = 'diagnostic';
-  currentQuestions = cachedDiagnosticQs;
-  currentQIndex = 0;
-  diagnosticScore = 0;
-
-  document.getElementById('quiz-phase-label').textContent = '🎯 Level Check';
-  renderQuestion();
-  goTo('screen-quiz');
-}
-
-// ═══════════════════════════════════════
-// MAIN QUIZ
-// ═══════════════════════════════════════
-async function startMainQuiz(questions) {
-  phase = 'main';
-  mainRound++;
-  currentQuestions = questions;
-  currentQIndex = 0;
-  incorrectQuestions = [];
-
-  const levelLabels = { beginner: '🟢 Beginner', intermediate: '🟡 Intermediate', advanced: '🔴 Advanced' };
-  document.getElementById('quiz-phase-label').textContent = levelLabels[userLevel] || 'Quiz';
-  renderQuestion();
-  goTo('screen-quiz');
-}
-
-async function loadMainQuestions() {
-  goTo('screen-loading');
-  document.getElementById('loading-text').textContent = `Building ${userLevel} questions…`;
-  const target = selectedSection
-    ? { ...selectedSection, sectionName: `${selectedChapter.name} — ${selectedSection.name}` }
-    : selectedChapter;
-  const qs = await callClaudeJSON(buildMainPrompt(target, userLevel));
-  if (!qs) return;
-  await startMainQuiz(qs);
-}
-
-// ═══════════════════════════════════════
-// RENDER QUESTION
-// ═══════════════════════════════════════
-function renderQuestion() {
-  const q = currentQuestions[currentQIndex];
-  const total = currentQuestions.length;
-  const isLast = currentQIndex === total - 1;
-
-  document.getElementById('q-counter').textContent = `Question ${currentQIndex + 1} of ${total}`;
-  document.getElementById('q-progress-fill').style.width = `${((currentQIndex) / total) * 100}%`;
-  document.getElementById('question-text').textContent = q.question;
-  document.getElementById('feedback-box').className = 'feedback-box';
-  document.getElementById('next-btn').style.display = 'none';
-
-  const container = document.getElementById('options-container');
-  container.innerHTML = '';
-  const labels = ['A', 'B', 'C', 'D'];
-  q.options.forEach((opt, i) => {
-    const el = document.createElement('div');
-    el.className = 'option-item';
-    el.innerHTML = `<div class="opt-label">${labels[i]}</div><div>${opt}</div>`;
-    el.onclick = () => selectOption(i, q.correct, q.explanation, labels);
-    container.appendChild(el);
-  });
-}
-
-function selectOption(chosen, correct, explanation, labels) {
-  const items = document.querySelectorAll('.option-item');
-  items.forEach(el => { el.classList.add('disabled'); el.onclick = null; });
-
-  const isCorrect = chosen === correct;
-  items[chosen].classList.add(isCorrect ? 'correct' : 'wrong');
-  if (!isCorrect) items[correct].classList.add('correct');
-
-  const fb = document.getElementById('feedback-box');
-  fb.className = `feedback-box show ${isCorrect ? 'correct' : 'wrong'}`;
-  fb.innerHTML = isCorrect
-    ? `<div class="feedback-title">✓ Correct!</div>${explanation}`
-    : `<div class="feedback-title">✗ Incorrect — Answer: ${labels[correct]}</div>${explanation}`;
-
-  if (phase === 'diagnostic') {
-    if (isCorrect) diagnosticScore++;
-  } else {
-    sessionTotal++;
-    if (isCorrect) {
-      sessionCorrect++;
-    } else {
-      incorrectQuestions.push(currentQuestions[currentQIndex]);
+function loadJson(e){
+  const file=e.target.files[0]; if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!Array.isArray(data))throw 0;
+      questions=data.filter(q=>!q.hata);
+      document.getElementById('json-zone').classList.add('loaded');
+      document.getElementById('json-title').textContent='✓ '+file.name;
+      document.getElementById('json-sub').textContent=questions.length+' soru yüklendi';
+      checkReady();
+    }catch(err){
+      document.getElementById('json-title').textContent='⚠️ Geçersiz JSON';
     }
-  }
-
-  const nextLabel = currentQIndex < currentQuestions.length - 1 ? 'Next →' : 'Finish';
-  const btn = document.getElementById('next-btn');
-  btn.textContent = nextLabel;
-  btn.style.display = 'block';
-}
-
-function nextQuestion() {
-  currentQIndex++;
-  if (currentQIndex >= currentQuestions.length) {
-    finishRound();
-  } else {
-    renderQuestion();
-  }
-}
-
-// ═══════════════════════════════════════
-// FINISH
-// ═══════════════════════════════════════
-function finishRound() {
-  if (phase === 'diagnostic') {
-    // Determine level from diagnostic score (0-3)
-    if (diagnosticScore <= 1) userLevel = 'beginner';
-    else if (diagnosticScore === 2) userLevel = 'intermediate';
-    else userLevel = 'advanced';
-    showDiagnosticResult();
-  } else {
-    showQuizResult();
-  }
-}
-
-function showDiagnosticResult() {
-  const levelInfo = {
-    beginner: { emoji: '🟢', label: 'Beginner', desc: 'We\'ll build your foundation step by step.', badge: 'level-beginner' },
-    intermediate: { emoji: '🟡', label: 'Intermediate', desc: 'Good base knowledge. Ready to go deeper.', badge: 'level-intermediate' },
-    advanced: { emoji: '🔴', label: 'Advanced', desc: 'Strong grasp. Expect challenging questions.', badge: 'level-advanced' },
   };
-  const info = levelInfo[userLevel];
-
-  document.getElementById('result-emoji').textContent = info.emoji;
-  document.getElementById('result-score').textContent = `${diagnosticScore}/3`;
-  document.getElementById('result-label').textContent = 'Level Check Complete';
-
-  document.getElementById('result-breakdown').innerHTML = `
-    <div class="breakdown-row">
-      <span class="breakdown-label">Your Level</span>
-      <span class="breakdown-val"><span class="level-badge ${info.badge}">${info.emoji} ${info.label}</span></span>
-    </div>
-    <div class="breakdown-row">
-      <span class="breakdown-label">Correct</span>
-      <span class="breakdown-val green">${diagnosticScore} / 3</span>
-    </div>
-    <div style="padding: 12px 0 4px; font-size: 14px; color: var(--muted); line-height: 1.5;">${info.desc}</div>
-  `;
-
-  document.getElementById('result-actions').innerHTML = `
-    <button class="btn-primary" onclick="loadMainQuestions()">Start ${info.label} Quiz →</button>
-    <button class="btn-secondary" onclick="goTo('screen-chapters')">Choose Another Chapter</button>
-  `;
-
-  goTo('screen-result');
+  r.readAsText(file);
 }
 
-function showQuizResult() {
-  const pct = sessionTotal > 0 ? Math.round((sessionCorrect / sessionTotal) * 100) : 0;
-  const emoji = pct === 100 ? '🏆' : pct >= 80 ? '🎉' : pct >= 60 ? '👍' : '📚';
-  const label = pct === 100 ? 'Perfect score!' : pct >= 80 ? 'Great work!' : pct >= 60 ? 'Good progress.' : 'Keep going — you\'ll get there.';
+function loadPngs(e){
+  const files=Array.from(e.target.files); if(!files.length)return;
+  pngMap={}; let loaded=0; const total=files.length;
+  document.getElementById('png-title').textContent='Yükleniyor… 0/'+total;
+  files.forEach(f=>{
+    const r=new FileReader();
+    r.onload=ev=>{
+      pngMap[f.name]=ev.target.result;
+      loaded++;
+      document.getElementById('png-title').textContent='Yükleniyor… '+loaded+'/'+total;
+      if(loaded===total){
+        document.getElementById('png-zone').classList.add('loaded');
+        document.getElementById('png-title').textContent='✓ '+total+' görsel';
+        document.getElementById('png-sub').textContent='Sorularla eşleşecek';
+      }
+    };
+    r.readAsDataURL(f);
+  });
+}
 
-  document.getElementById('result-emoji').textContent = emoji;
-  document.getElementById('result-score').textContent = `${sessionCorrect}/${sessionTotal}`;
-  document.getElementById('result-label').textContent = label;
+function checkReady(){
+  document.getElementById('start-btn').disabled=!(apiKey.startsWith('sk-')&&questions.length>0);
+}
 
-  const levelLabels = { beginner: '🟢 Beginner', intermediate: '🟡 Intermediate', advanced: '🔴 Advanced' };
-  document.getElementById('result-breakdown').innerHTML = `
-    <div class="breakdown-row">
-      <span class="breakdown-label">Level</span>
-      <span class="breakdown-val">${levelLabels[userLevel]}</span>
-    </div>
-    <div class="breakdown-row">
-      <span class="breakdown-label">Correct</span>
-      <span class="breakdown-val green">${sessionCorrect}</span>
-    </div>
-    <div class="breakdown-row">
-      <span class="breakdown-label">Incorrect</span>
-      <span class="breakdown-val red">${sessionTotal - sessionCorrect}</span>
-    </div>
-    <div class="breakdown-row">
-      <span class="breakdown-label">Accuracy</span>
-      <span class="breakdown-val">${pct}%</span>
-    </div>
-  `;
+// ════════ NAV ════════
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function goSetup(){show('screen-setup');}
+function goList(){show('screen-list');renderList();}
+function enterApp(){buildFilters();applyFilter('hepsi');show('screen-list');}
 
-  const actionsEl = document.getElementById('result-actions');
-  if (incorrectQuestions.length > 0 && pct < 100) {
-    actionsEl.innerHTML = `
-      <button class="btn-primary" onclick="retryWrong()">Retry ${incorrectQuestions.length} Wrong →</button>
-      <button class="btn-secondary" onclick="loadMainQuestions()">New Round (${levelLabels[userLevel]})</button>
-      <button class="btn-secondary" onclick="goTo('screen-chapters')">Choose Another Chapter</button>
-    `;
-  } else if (pct === 100 && userLevel !== 'advanced') {
-    const next = userLevel === 'beginner' ? 'intermediate' : 'advanced';
-    actionsEl.innerHTML = `
-      <button class="btn-primary" onclick="upgradeLevel('${next}')">Level Up to ${next.charAt(0).toUpperCase()+next.slice(1)} →</button>
-      <button class="btn-secondary" onclick="goTo('screen-chapters')">Choose Another Chapter</button>
-    `;
-  } else {
-    actionsEl.innerHTML = `
-      <button class="btn-primary" onclick="loadMainQuestions()">Another Round →</button>
-      <button class="btn-secondary" onclick="goTo('screen-chapters')">Choose Another Chapter</button>
-    `;
+// ════════ FILTRELER ════════
+function buildFilters(){
+  const konular={};
+  questions.forEach(q=>{const a=anaKonu(q.konu||'');konular[a]=(konular[a]||0)+1;});
+  const fc=document.getElementById('filters');fc.innerHTML='';
+  addChip('hepsi','Hepsi ('+questions.length+')');
+  // tekrar bak
+  const tb=questions.filter(q=>marks[q.dosya]==='tekrar').length;
+  if(tb>0)addChip('tekrar','🔖 Tekrar Bak ('+tb+')');
+  // zorluk
+  ['kolay','orta','zor'].forEach(z=>{const n=questions.filter(q=>q.zorluk===z).length;if(n)addChip('zor:'+z,cap(z)+' ('+n+')');});
+  const uyN=questions.filter(q=>isUyusmaz(q)).length;
+  if(uyN)addChip('uyari','⚠️ Uyuşmaz ('+uyN+')');
+  Object.entries(konular).sort((a,b)=>b[1]-a[1]).forEach(([k,n])=>addChip('konu:'+k,k+' ('+n+')'));
+}
+function addChip(id,label){const c=document.createElement('div');c.className='chip'+(id===activeFilter?' active':'');c.textContent=label;c.onclick=()=>applyFilter(id);document.getElementById('filters').appendChild(c);}
+function applyFilter(id){
+  activeFilter=id;
+  if(id==='hepsi')filtered=questions.slice();
+  else if(id==='tekrar')filtered=questions.filter(q=>marks[q.dosya]==='tekrar');
+  else if(id==='uyari')filtered=questions.filter(q=>isUyusmaz(q));
+  else if(id.startsWith('zor:'))filtered=questions.filter(q=>q.zorluk===id.slice(4));
+  else if(id.startsWith('konu:'))filtered=questions.filter(q=>anaKonu(q.konu||'')===id.slice(5));
+  buildFilters();renderList();
+}
+
+// ════════ LISTE ════════
+function renderList(){
+  document.getElementById('list-count').textContent=filtered.length+' soru';
+  const list=document.getElementById('q-list');
+  if(!filtered.length){list.innerHTML='<div class="empty-state"><div class="ei">🔍</div>Bu filtreyle soru yok</div>';return;}
+  list.innerHTML='';
+  filtered.forEach((q,i)=>{
+    const card=document.createElement('div');card.className='q-card';
+    const zorluk=q.zorluk||'orta';
+    const uyari=isUyusmaz(q)?'<span class="badge badge-warn">⚠️</span>':'';
+    const mark=marks[q.dosya];
+    const markDot=mark==='anladim'?'<span class="mark-dot">✅</span>':mark==='tekrar'?'<span class="mark-dot">🔖</span>':'';
+    card.innerHTML=`
+      <div class="q-card-top">
+        <span class="q-num">#${i+1}</span>
+        <div class="q-badges">${markDot}${uyari}<span class="badge badge-${zorluk}">${zorluk}</span></div>
+      </div>
+      <div class="q-konu">${esc(q.konu||'Konu yok')}</div>
+      <div class="q-preview">${esc((q.soru_metni||'').slice(0,160))}</div>
+      <div class="q-file">📎 ${esc(q.dosya||'')}</div>`;
+    card.onclick=()=>openStage(i);
+    list.appendChild(card);
+  });
+}
+
+// ════════ STAGE AKIS ════════
+function openStage(idx){currentIndex=idx;currentStage='learn';renderStageTabs();renderStage();show('screen-stage');}
+
+function renderStageTabs(){
+  const q=filtered[currentIndex];
+  document.getElementById('stage-pos').textContent=(currentIndex+1)+' / '+filtered.length;
+  ['learn','quiz','solve'].forEach(s=>{
+    const t=document.getElementById('tab-'+s);
+    t.classList.toggle('active',currentStage===s);
+  });
+  // quiz gectiyse done isareti
+  const qs=quizState[q.dosya];
+  const quizTab=document.getElementById('tab-quiz');
+  if(qs&&qs.total>0&&qs.correct/qs.total>=0.6)quizTab.classList.add('done');else quizTab.classList.remove('done');
+}
+
+function switchStage(s){currentStage=s;renderStageTabs();renderStage();}
+
+function renderStage(){
+  if(currentStage==='learn')renderLearn();
+  else if(currentStage==='quiz')renderQuiz();
+  else renderSolve();
+}
+
+// ════════ ÖĞREN ════════
+async function renderLearn(){
+  const q=filtered[currentIndex];
+  const scroll=document.getElementById('stage-scroll');
+
+  if(learnCache[q.dosya]){
+    showLearnContent(q,learnCache[q.dosya]);
+    return;
   }
 
-  goTo('screen-result');
+  scroll.innerHTML='<div class="loading-wrap"><div class="spinner"></div><div class="loading-text">Bu soru için hazırlık dersi oluşturuluyor…</div></div>';
+
+  const prompt=buildLearnPrompt(q);
+  const html=await callClaude(prompt);
+  if(!html){scroll.innerHTML='<div class="empty-state"><div class="ei">⚠️</div>Ders oluşturulamadı. Tekrar dene.</div>';return;}
+  learnCache[q.dosya]=html;
+  showLearnContent(q,html);
 }
 
-async function retryWrong() {
-  const qs = incorrectQuestions;
-  sessionCorrect = 0;
-  sessionTotal = 0;
-  incorrectQuestions = [];
-  await startMainQuiz(qs);
+function showLearnContent(q,html){
+  const scroll=document.getElementById('stage-scroll');
+  scroll.innerHTML=`
+    <div class="detail-konu">${esc(q.konu||'')}</div>
+    <div class="detail-badges"><span class="badge badge-${q.zorluk||'orta'}">${q.zorluk||'orta'}</span></div>
+    <div class="learn-box">${html}</div>
+    <button class="primary-btn" onclick="switchStage('quiz')">Teste Geç →</button>
+  `;
+  scroll.scrollTop=0;
 }
 
-function upgradeLevel(newLevel) {
-  userLevel = newLevel;
-  loadMainQuestions();
+// ════════ TEST ════════
+async function renderQuiz(){
+  const q=filtered[currentIndex];
+  const scroll=document.getElementById('stage-scroll');
+
+  if(quizCache[q.dosya]){
+    startQuiz(q,quizCache[q.dosya]);
+    return;
+  }
+  scroll.innerHTML='<div class="loading-wrap"><div class="spinner"></div><div class="loading-text">Hazırlık testi oluşturuluyor…</div></div>';
+  const qs=await callClaudeJSON(buildQuizPrompt(q));
+  if(!qs){scroll.innerHTML='<div class="empty-state"><div class="ei">⚠️</div>Test oluşturulamadı.</div>';return;}
+  quizCache[q.dosya]=qs;
+  startQuiz(q,qs);
 }
 
-function confirmBack() {
-  if (confirm('Exit this session?')) goTo('screen-chapters');
+let curQuiz=[],curQIdx=0,curQCorrect=0;
+function startQuiz(q,qs){
+  curQuiz=qs;curQIdx=0;curQCorrect=0;
+  renderQuizQ(q);
 }
-
-// ═══════════════════════════════════════
-// PROMPTS
-// ═══════════════════════════════════════
-function buildSummaryPrompt(target) {
-  const name = target.sectionName || target.name;
-  const topics = target.topics;
-  return `You are an expert actuarial science tutor. Write a study summary for "${name}" (Nonlife Actuarial Models, Tse).
-Topics: ${topics}
-
-TONE: Practical, clear, like explaining to a smart colleague. NOT textbook style. Short sentences.
-
-FORMAT (use exactly this HTML structure):
-- Short explanation per concept (1-2 sentences max each)
-- End with this exact block:
-<div class="real-world-box"><div class="rw-label">📍 Real World</div><p>ONE specific, vivid real insurance example. Name actual numbers or context. E.g: "A Turkish motor insurer models daily claim arrivals with Poisson(λ=8.3). In 2023 they used this to set aside ₺2.1M daily reserve buffer."</p></div>
-
-Clean HTML only. Under 300 words. Start directly — no preamble.`;
+function renderQuizQ(q){
+  const scroll=document.getElementById('stage-scroll');
+  const item=curQuiz[curQIdx];
+  const total=curQuiz.length;
+  const labels=['A','B','C','D'];
+  scroll.innerHTML=`
+    <div class="q-progress"><div class="q-progress-fill" style="width:${(curQIdx/total)*100}%"></div></div>
+    <div class="quiz-counter">Soru ${curQIdx+1} / ${total}</div>
+    <div class="quiz-q">${esc(item.question)}</div>
+    <div id="quiz-opts"></div>
+    <div class="fb" id="quiz-fb"></div>
+    <div id="quiz-next"></div>
+  `;
+  const opts=document.getElementById('quiz-opts');
+  item.options.forEach((o,i)=>{
+    const el=document.createElement('div');el.className='opt';
+    el.innerHTML=`<div class="opt-l">${labels[i]}</div><div>${esc(o)}</div>`;
+    el.onclick=()=>answerQuiz(i,item,labels,q);
+    opts.appendChild(el);
+  });
+  scroll.scrollTop=0;
 }
-
-function buildDiagnosticPrompt(target) {
-  const name = target.sectionName || target.name;
-  const topics = target.topics;
-  return `Generate exactly 3 diagnostic MCQ for "${name}" (Nonlife Actuarial Models, Tse). Topics: ${topics}
-
-CRITICAL: Respond with ONLY a raw JSON array. No markdown, no backticks, no explanation. Start with [ end with ].
-[{"question":"?","options":["A","B","C","D"],"correct":0,"explanation":"why"},{"question":"?","options":["A","B","C","D"],"correct":1,"explanation":"why"},{"question":"?","options":["A","B","C","D"],"correct":2,"explanation":"why"}]`;
-}
-
-function buildMainPrompt(target, level) {
-  const name = target.sectionName || target.name;
-  const topics = target.topics;
-  const levelDesc = {
-    beginner: 'basic conceptual understanding, definitions, simple calculations',
-    intermediate: 'moderate difficulty, multi-step problems, applying formulas',
-    advanced: 'challenging exam-style questions, complex calculations, edge cases',
+function answerQuiz(chosen,item,labels,q){
+  const opts=document.querySelectorAll('#quiz-opts .opt');
+  opts.forEach(o=>{o.onclick=null;});
+  const correct=item.correct;
+  const isC=chosen===correct;
+  opts[chosen].classList.add(isC?'correct':'wrong');
+  if(!isC)opts[correct].classList.add('correct');
+  const fb=document.getElementById('quiz-fb');
+  fb.className='fb show '+(isC?'correct':'wrong');
+  fb.innerHTML=(isC?'<b>✓ Doğru!</b> ':'<b>✗ Yanlış — Cevap '+labels[correct]+'</b> ')+esc(item.explanation||'');
+  if(isC)curQCorrect++;
+  const last=curQIdx===curQuiz.length-1;
+  const btn=document.createElement('button');
+  btn.className='primary-btn';
+  btn.textContent=last?'Testi Bitir':'Sonraki →';
+  btn.onclick=()=>{
+    if(last)finishQuiz(q);
+    else{curQIdx++;renderQuizQ(q);}
   };
-  return `Generate exactly 5 ${level}-level MCQ for "${name}" (Nonlife Actuarial Models, Tse).
-Level: ${levelDesc[level]}. Topics: ${topics}
+  document.getElementById('quiz-next').appendChild(btn);
+}
+function finishQuiz(q){
+  quizState[q.dosya]={total:curQuiz.length,correct:curQCorrect};
+  const pct=Math.round((curQCorrect/curQuiz.length)*100);
+  const scroll=document.getElementById('stage-scroll');
+  const gecti=pct>=60;
+  scroll.innerHTML=`
+    <div class="empty-state">
+      <div class="ei">${gecti?'🎉':'📚'}</div>
+      <div style="font-size:32px;font-weight:800;color:var(--accent2);">${curQCorrect}/${curQuiz.length}</div>
+      <div style="font-size:15px;color:var(--muted);margin-top:6px;">${gecti?'Hazırsın! Gerçek soruya geçebilirsin.':'Biraz daha çalışman iyi olur.'}</div>
+    </div>
+    <div id="finish-actions"></div>
+  `;
+  const fa=document.getElementById('finish-actions');
+  if(gecti){
+    const b=document.createElement('button');
+    b.className='primary-btn';b.textContent='Gerçek Soruyu Çöz →';
+    b.onclick=()=>switchStage('solve');
+    fa.appendChild(b);
+  }
+  const r=document.createElement('button');
+  r.className='secondary-btn';r.textContent='Testi Tekrar Yap';
+  r.onclick=retryQuiz;fa.appendChild(r);
+  const l=document.createElement('button');
+  l.className='secondary-btn';l.textContent='Dersi Tekrar Oku';
+  l.onclick=()=>switchStage('learn');fa.appendChild(l);
+  renderStageTabs();
+}
+function retryQuiz(){const q=filtered[currentIndex];startQuiz(q,quizCache[q.dosya]);}
 
-CRITICAL: Respond with ONLY a raw JSON array. No markdown, no backticks, no explanation. Start with [ end with ].
-[{"question":"?","options":["A","B","C","D"],"correct":0,"explanation":"why"},{"question":"?","options":["A","B","C","D"],"correct":1,"explanation":"why"},{"question":"?","options":["A","B","C","D"],"correct":0,"explanation":"why"},{"question":"?","options":["A","B","C","D"],"correct":2,"explanation":"why"},{"question":"?","options":["A","B","C","D"],"correct":3,"explanation":"why"}]`;
+// ════════ ÇÖZ ════════
+function renderSolve(){
+  const q=filtered[currentIndex];
+  const scroll=document.getElementById('stage-scroll');
+  const zorluk=q.zorluk||'orta';
+
+  let imgHtml;
+  const blob=pngMap[q.dosya];
+  if(blob){
+    imgHtml=`<div class="q-image-wrap" onclick="openZoom('${blob}')"><img src="${blob}" alt="soru"><div class="zoom-hint">🔍 Büyütmek için dokun</div></div>`;
+  }else{
+    imgHtml=`<div class="q-image-missing">🖼️ Görsel yok<br><span style="font-size:11px;">${esc(q.dosya||'')}</span><br><br><div style="text-align:left;font-size:14px;color:var(--text);line-height:1.6;">${esc(q.soru_metni||'')}</div></div>`;
+  }
+
+  const kontrol=q.cevap_anahtari_kontrolu||{};
+  let anahtarHtml='';
+  if(kontrol.anahtar_var_mi){
+    const uy=kontrol.uyusuyor_mu;
+    anahtarHtml=`<div class="anahtar-box">
+      <div class="anahtar-row"><span class="lbl">Cevap Anahtarı</span><span class="val">${esc(String(kontrol.anahtar_deger||'—'))}</span></div>
+      <div class="anahtar-row"><span class="lbl">Durum</span><span class="val" style="color:${uy?'var(--success)':'var(--danger)'}">${uy?'✓ Uyuşuyor':'✗ Uyuşmuyor'}</span></div>
+      ${!uy&&kontrol.not?`<div class="uyari-not">${esc(kontrol.not)}</div>`:''}
+    </div>`;
+  }
+
+  const adimlar=(q.cozum_adimlari||[]).map(a=>`<div class="step">${esc(a)}</div>`).join('');
+  const bil=(q.bunlari_bil||[]).map(b=>`<li>${esc(b)}</li>`).join('');
+  const kws=(q.anahtar_kelimeler||[]).map(k=>`<span class="kw">${esc(k)}</span>`).join('');
+  const mark=marks[q.dosya];
+
+  scroll.innerHTML=`
+    <div class="detail-konu">${esc(q.konu||'')}</div>
+    <div class="detail-badges"><span class="badge badge-${zorluk}">${zorluk}</span>${isUyusmaz(q)?'<span class="badge badge-warn">⚠️ Cevap Uyuşmaz</span>':''}</div>
+    ${imgHtml}
+    ${kws?`<div class="keywords">${kws}</div>`:''}
+    <button class="reveal-btn" onclick="toggleBlock('cozum')" id="rb-cozum">📝 Çözümü Göster</button>
+    <div class="section-block" id="blk-cozum">
+      <div class="block-head">Çözüm Adımları</div>${adimlar}
+      ${q.sonuc?`<div class="sonuc-box"><div class="sl">Sonuç</div>${esc(q.sonuc)}</div>`:''}
+      ${anahtarHtml}
+    </div>
+    <button class="reveal-btn" onclick="toggleBlock('bil')" id="rb-bil">💡 Bunları Bil</button>
+    <div class="section-block" id="blk-bil"><div class="bil-box"><div class="bl">Bilmen Gerekenler</div><ul>${bil}</ul></div></div>
+    <div class="mark-row">
+      <button class="mark-btn anladim ${mark==='anladim'?'active':''}" onclick="setMark('anladim')">✅ Anladım</button>
+      <button class="mark-btn tekrar ${mark==='tekrar'?'active':''}" onclick="setMark('tekrar')">🔖 Tekrar Bak</button>
+    </div>
+  `;
+  scroll.scrollTop=0;
 }
 
-// ═══════════════════════════════════════
-// API
-// ═══════════════════════════════════════
-async function callClaude(prompt) {
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 800,
-        messages: [{ role: 'user', content: prompt }]
-      })
+function setMark(m){
+  const q=filtered[currentIndex];
+  marks[q.dosya]=marks[q.dosya]===m?undefined:m; // toggle
+  if(!marks[q.dosya])delete marks[q.dosya];
+  showToast(marks[q.dosya]==='anladim'?'✅ Anladım olarak işaretlendi':marks[q.dosya]==='tekrar'?'🔖 Tekrar Bak listesine eklendi':'İşaret kaldırıldı');
+  renderSolve();
+}
+
+function toggleBlock(name){
+  const blk=document.getElementById('blk-'+name);
+  const btn=document.getElementById('rb-'+name);
+  const shown=blk.classList.contains('show');
+  blk.classList.toggle('show');
+  if(name==='cozum')btn.textContent=shown?'📝 Çözümü Göster':'📝 Çözümü Gizle';
+  if(name==='bil')btn.textContent=shown?'💡 Bunları Bil':'💡 Gizle';
+}
+
+// ════════ ZOOM ════════
+function openZoom(url){document.getElementById('img-modal-img').src=url;document.getElementById('img-modal').classList.add('show');document.getElementById('img-modal-scroll').scrollTop=0;}
+function closeZoom(){document.getElementById('img-modal').classList.remove('show');}
+
+// ════════ PROMPTS ════════
+function buildLearnPrompt(q){
+  const bil=(q.bunlari_bil||[]).join('; ');
+  const kw=(q.anahtar_kelimeler||[]).join(', ');
+  return `Sen uzman bir aktüerya eğitmenisin. Bir öğrenci şu konudaki bir sınav sorusunu çözmeye hazırlanıyor: "${q.konu}".
+
+Bu soruyu çözebilmek için bilmesi gereken ön bilgiler: ${bil}
+Anahtar kavramlar: ${kw}
+
+Bu kavramları öğreten KISA bir hazırlık dersi yaz. Kuru teori değil — pratik ve anlaşılır ol, gerçek sigorta örnekleriyle bağ kur. Öğrenci bu dersi okuyunca soruyu çözecek temel bilgiye sahip olmalı.
+
+TÜM içeriği TÜRKÇE yaz. Temiz HTML kullan (<h3> alt başlık, <p> paragraf, <ul>/<li> liste, <strong> vurgu). 300 kelimeyi geçme. Sonuna bu bloğu ekle:
+<div class="real-world-box"><div class="rw-label">📍 Gerçek Hayat</div><p>Bu konunun gerçek sigortacılıkta nasıl kullanıldığına dair somut, akılda kalıcı bir örnek.</p></div>
+
+Önsöz yazma, direkt içerikle başla.`;
+}
+
+function buildQuizPrompt(q){
+  const bil=(q.bunlari_bil||[]).join('; ');
+  return `Aktüerya konusu: "${q.konu}". Ön bilgiler: ${bil}
+
+Bu ön bilgileri ölçen 3 çoktan seçmeli hazırlık sorusu üret. Sorular TÜRKÇE olmalı ve öğrencinin asıl sınav sorusunu çözmeye hazır olup olmadığını test etmeli. Temel kavram ve formülleri sorsun.
+
+SADECE ham JSON dizisi döndür. Markdown yok, backtick yok, açıklama yok. [ ile başla ] ile bitir.
+[{"question":"...","options":["...","...","...","..."],"correct":0,"explanation":"..."},{"question":"...","options":["...","...","...","..."],"correct":1,"explanation":"..."},{"question":"...","options":["...","...","...","..."],"correct":2,"explanation":"..."}]`;
+}
+
+// ════════ API ════════
+async function callClaude(prompt){
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1200,messages:[{role:'user',content:prompt}]})
     });
-    const data = await res.json();
-    if (data.error) { showToast('API Error: ' + data.error.message); goTo('screen-chapters'); return null; }
+    const data=await res.json();
+    if(data.error){showToast('API: '+data.error.message);return null;}
     return data.content[0].text;
-  } catch (e) {
-    showToast('Network error'); goTo('screen-chapters'); return null;
+  }catch(e){showToast('Bağlantı hatası');return null;}
+}
+async function callClaudeJSON(prompt){
+  const raw=await callClaude(prompt);
+  if(!raw)return null;
+  try{return parseJSON(raw);}
+  catch(e){
+    const raw2=await callClaude(prompt);
+    if(!raw2)return null;
+    try{return parseJSON(raw2);}catch{showToast('Test üretilemedi');return null;}
   }
 }
-
-async function callClaudeJSON(prompt) {
-  const raw = await callClaude(prompt);
-  if (!raw) return null;
-  try {
-    return parseJSON(raw);
-  } catch (e) {
-    // retry once
-    const raw2 = await callClaude(prompt);
-    if (!raw2) return null;
-    try {
-      return parseJSON(raw2);
-    } catch {
-      showToast('Could not generate questions');
-      goTo('screen-chapters');
-      return null;
-    }
-  }
+function parseJSON(raw){
+  let c=raw.replace(/```json/gi,'').replace(/```/g,'').trim();
+  const s=c.indexOf('['),e=c.lastIndexOf(']');
+  if(s===-1||e===-1)throw new Error('no array');
+  c=c.slice(s,e+1);
+  const p=JSON.parse(c);
+  if(!Array.isArray(p)||!p.length)throw new Error('empty');
+  return p;
 }
 
-function parseJSON(raw) {
-  // Strip markdown fences
-  let clean = raw.replace(/```json\s*/gi, '').replace(/```\s*/gi, '').trim();
-  // Find first [ and last ]
-  const start = clean.indexOf('[');
-  const end = clean.lastIndexOf(']');
-  if (start === -1 || end === -1) throw new Error('no array');
-  clean = clean.slice(start, end + 1);
-  const parsed = JSON.parse(clean);
-  if (!Array.isArray(parsed) || parsed.length === 0) throw new Error('empty');
-  return parsed;
+// ════════ YARDIMCI ════════
+function isUyusmaz(q){const k=q.cevap_anahtari_kontrolu||{};return k.anahtar_var_mi&&k.uyusuyor_mu===false;}
+function anaKonu(konu){
+  const k=konu.toLowerCase();
+  const kat=[
+    ['İflas & Risk Teorisi',['iflas','ruin','lundberg','ayarlama katsay','düzeltme katsay','adjustment','surplus','riske maruz süreç','risk teorisi','cramér']],
+    ['Bileşik Poisson',['bileşik poisson','panjer','toplam hasar','compound']],
+    ['Poisson Süreci',['poisson süreci','homojen','nonhomojen','bekleme zaman']],
+    ['Kredibilite',['kredibilite','bühlmann','buhlmann','credibility']],
+    ['Bayes',['bayes','sonsal','posterior','eşlenik','eslenik','konjuge','conjugate']],
+    ['Risk Ölçütleri',['var','tvar','cte','riske maruz değer','risk ölçüt']],
+    ['Reasürans',['reasürans','reasurans','stop-loss','stop loss','hasar fazlası','quota','eksedan','excess','kot-par']],
+    ['Hasar Rezervi (IBNR)',['zincir','merdiven','chain ladder','muallak','ibnr','bornhuetter','rezerv','azmm']],
+    ['GLM',['glm','genelleştiril','doğrusal model','lineer model','link','logit','bağlantı']],
+    ['Severity & Dağılım',['pareto','üstel','ustel','muafiyet','deductible','hazard','artık ömür','mean excess','karma','mixture']],
+    ['Monte Carlo',['ters dönüşüm','ters donusum','inverse transform','rastgele sayı','monte carlo','simülasyon']],
+    ['Prim Karşılığı',['kazanılmamış','prim karşılığ','prim karsilig','gelecek dönem prim']],
+  ];
+  for(const[ad,as]of kat)if(as.some(a=>k.includes(a)))return ad;
+  return 'Diğer';
 }
-
-// ═══════════════════════════════════════
-// UTILS
-// ═══════════════════════════════════════
-function formatSummary(text) {
-  // If already HTML, return as-is
-  if (text.includes('<h3>') || text.includes('<p>')) return text;
-  // Otherwise wrap paragraphs
-  return text.split('\n\n').map(p => `<p>${p}</p>`).join('');
-}
-
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
-}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 </script>
 </body>
 </html>
