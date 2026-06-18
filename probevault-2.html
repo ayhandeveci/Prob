@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ProbeVault">
+<title>ProbeVault</title>
+<style>
+  :root {
+    --bg:#0a0a0f; --surface:#14141c; --surface2:#1d1d28; --surface3:#252533;
+    --border:#2c2c3a; --accent:#5b9bf6; --accent2:#7db4ff;
+    --text:#f0f0f8; --muted:#8a8aa3; --success:#34d399; --danger:#f87171; --warning:#fbbf24;
+    --radius:16px; --safe-top:env(safe-area-inset-top,0px); --safe-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{overscroll-behavior:none;}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif;min-height:100dvh;overflow-x:hidden;}
+  .screen{display:none;flex-direction:column;min-height:100dvh;padding-top:var(--safe-top);}
+  .screen.active{display:flex;}
+
+  /* TOPBAR */
+  .topbar{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);background:rgba(10,10,15,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);position:sticky;top:0;z-index:50;}
+  .logo{font-size:19px;font-weight:700;letter-spacing:-0.4px;background:linear-gradient(135deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .topbar-meta{margin-left:auto;font-size:13px;color:var(--muted);}
+  .icon-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);width:36px;height:36px;border-radius:10px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .icon-btn:active{background:var(--surface3);}
+  .back-btn{background:none;border:none;color:var(--accent2);font-size:16px;cursor:pointer;display:flex;align-items:center;gap:4px;padding:2px 0;}
+
+  /* SETUP */
+  .setup-wrap{flex:1;display:flex;flex-direction:column;padding:0 20px calc(var(--safe-bottom) + 20px);overflow-y:auto;}
+  .hero{padding:44px 0 28px;}
+  .hero h1{font-size:32px;font-weight:800;letter-spacing:-0.8px;line-height:1.1;margin-bottom:12px;}
+  .hero h1 span{color:var(--accent2);}
+  .hero p{font-size:15px;color:var(--muted);line-height:1.6;}
+  .step-label{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin:18px 0 10px;}
+  .drop-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:24px 20px;text-align:center;cursor:pointer;background:var(--surface);transition:border-color 0.2s,background 0.2s;}
+  .drop-zone:active{border-color:var(--accent);background:rgba(91,155,246,0.06);}
+  .drop-zone.loaded{border-color:var(--success);border-style:solid;background:rgba(52,211,153,0.05);}
+  .drop-icon{font-size:30px;margin-bottom:8px;}
+  .drop-title{font-size:15px;font-weight:600;margin-bottom:3px;}
+  .drop-sub{font-size:13px;color:var(--muted);}
+  input[type=file]{display:none;}
+  .key-input{width:100%;background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 16px;color:var(--text);font-size:15px;outline:none;-webkit-appearance:none;}
+  .key-input:focus{border-color:var(--accent);}
+  .start-btn{width:100%;padding:16px;margin-top:24px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:16px;font-weight:600;cursor:pointer;transition:opacity 0.15s;}
+  .start-btn:disabled{opacity:0.3;}
+  .start-btn:active:not(:disabled){opacity:0.8;}
+  .hint{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.6;text-align:center;}
+
+  /* FILTERS */
+  .filters{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;border-bottom:1px solid var(--border);position:sticky;top:61px;background:var(--bg);z-index:40;}
+  .filters::-webkit-scrollbar{display:none;}
+  .chip{padding:7px 14px;border-radius:20px;font-size:13px;font-weight:500;background:var(--surface2);border:1px solid var(--border);color:var(--muted);white-space:nowrap;cursor:pointer;flex-shrink:0;}
+  .chip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+  /* LIST */
+  .q-list{flex:1;overflow-y:auto;padding:12px 16px calc(var(--safe-bottom) + 20px);}
+  .q-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:10px;cursor:pointer;transition:background 0.15s;position:relative;}
+  .q-card:active{background:var(--surface2);}
+  .q-card-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .q-num{font-size:12px;font-weight:700;color:var(--accent2);}
+  .q-badges{margin-left:auto;display:flex;gap:6px;align-items:center;}
+  .badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;text-transform:uppercase;letter-spacing:0.5px;}
+  .badge-kolay{background:rgba(52,211,153,0.15);color:var(--success);}
+  .badge-orta{background:rgba(251,191,36,0.15);color:var(--warning);}
+  .badge-zor{background:rgba(248,113,113,0.15);color:var(--danger);}
+  .badge-warn{background:rgba(248,113,113,0.2);color:#fca5a5;}
+  .mark-dot{font-size:14px;}
+  .q-konu{font-size:14px;font-weight:600;line-height:1.4;margin-bottom:6px;}
+  .q-preview{font-size:13px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .q-file{font-size:11px;color:var(--muted);margin-top:8px;opacity:0.7;}
+
+  /* STAGE FLOW */
+  .stage-scroll{flex:1;overflow-y:auto;padding:16px 16px calc(var(--safe-bottom) + 40px);}
+  .stage-tabs{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid var(--border);position:sticky;top:61px;background:var(--bg);z-index:40;}
+  .stage-tab{flex:1;text-align:center;padding:10px 4px;border-radius:10px;font-size:12px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--muted);cursor:pointer;}
+  .stage-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .stage-tab.done{border-color:var(--success);color:var(--success);}
+  .stage-tab.done.active{background:var(--success);color:#fff;}
+
+  .detail-konu{font-size:18px;font-weight:700;line-height:1.3;margin:4px 0 12px;}
+  .detail-badges{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+
+  /* LEARN */
+  .learn-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;line-height:1.7;font-size:15px;}
+  .learn-box h3{font-size:16px;color:var(--accent2);margin:14px 0 8px;}
+  .learn-box h3:first-child{margin-top:0;}
+  .learn-box p{margin-bottom:10px;}
+  .learn-box ul{padding-left:20px;margin-bottom:10px;}
+  .learn-box li{margin-bottom:6px;}
+  .learn-box strong{color:var(--text);}
+  .real-world-box{background:linear-gradient(135deg,rgba(91,155,246,0.1),rgba(125,180,255,0.04));border:1px solid rgba(91,155,246,0.25);border-left:3px solid var(--accent2);border-radius:12px;padding:14px 16px;margin-top:16px;}
+  .rw-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent2);margin-bottom:8px;}
+  .real-world-box p{font-size:14px;line-height:1.65;color:#d4d4f0;margin:0;}
+
+  /* QUIZ */
+  .quiz-q{font-size:16px;line-height:1.6;font-weight:500;margin-bottom:18px;}
+  .opt{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;cursor:pointer;display:flex;gap:12px;font-size:15px;line-height:1.5;transition:border-color 0.15s,background 0.15s;}
+  .opt:active{background:var(--surface2);}
+  .opt.sel{border-color:var(--accent);background:rgba(91,155,246,0.1);}
+  .opt.correct{border-color:var(--success);background:rgba(52,211,153,0.1);}
+  .opt.wrong{border-color:var(--danger);background:rgba(248,113,113,0.1);}
+  .opt-l{width:24px;height:24px;border-radius:7px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--muted);flex-shrink:0;}
+  .opt.sel .opt-l{background:var(--accent);color:#fff;}
+  .opt.correct .opt-l{background:var(--success);color:#fff;}
+  .opt.wrong .opt-l{background:var(--danger);color:#fff;}
+  .fb{border-radius:14px;padding:14px 16px;margin:8px 0;font-size:14px;line-height:1.6;display:none;}
+  .fb.show{display:block;}
+  .fb.correct{background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:var(--success);}
+  .fb.wrong{background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#fca5a5;}
+  .q-progress{height:3px;background:var(--border);border-radius:2px;margin-bottom:18px;overflow:hidden;}
+  .q-progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width 0.3s;}
+  .quiz-counter{font-size:13px;color:var(--muted);margin-bottom:8px;}
+
+  /* IMAGE */
+  .q-image-wrap{border-radius:12px;overflow:hidden;margin-bottom:16px;border:1px solid var(--border);background:#fff;width:100%;cursor:zoom-in;position:relative;}
+  .q-image-wrap img{width:100%;height:auto;display:block;object-fit:contain;}
+  .zoom-hint{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,0.6);color:#fff;font-size:11px;padding:4px 8px;border-radius:8px;pointer-events:none;}
+  .q-image-missing{padding:28px 16px;text-align:center;color:var(--muted);font-size:13px;background:var(--surface);border:1px dashed var(--border);border-radius:12px;margin-bottom:16px;line-height:1.6;}
+
+  /* REVEAL */
+  .reveal-btn{width:100%;padding:14px;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:12px;border:1px solid var(--border);background:var(--surface2);color:var(--accent2);transition:background 0.15s;}
+  .reveal-btn:active{background:var(--surface3);}
+  .section-block{margin-bottom:16px;display:none;}
+  .section-block.show{display:block;animation:fade 0.25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .block-head{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+  .step{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:12px 14px;margin-bottom:8px;font-size:14px;line-height:1.65;white-space:pre-wrap;}
+  .sonuc-box{background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.3);border-radius:12px;padding:14px 16px;font-size:14px;line-height:1.6;}
+  .sonuc-box .sl{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--success);margin-bottom:6px;}
+  .bil-box{background:linear-gradient(135deg,rgba(91,155,246,0.1),rgba(125,180,255,0.04));border:1px solid rgba(91,155,246,0.25);border-left:3px solid var(--accent2);border-radius:12px;padding:14px 16px;}
+  .bil-box .bl{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent2);margin-bottom:10px;}
+  .bil-box ul{margin:0;padding-left:18px;}
+  .bil-box li{font-size:14px;line-height:1.6;margin-bottom:8px;}
+  .anahtar-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:16px;}
+  .anahtar-row{display:flex;justify-content:space-between;align-items:center;font-size:14px;padding:4px 0;}
+  .anahtar-row .lbl{color:var(--muted);}
+  .anahtar-row .val{font-weight:600;}
+  .uyari-not{font-size:13px;color:#fca5a5;line-height:1.6;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+  .keywords{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+  .kw{font-size:12px;padding:5px 10px;border-radius:14px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+
+  /* MARK BUTTONS */
+  .mark-row{display:flex;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border);}
+  .mark-btn{flex:1;padding:14px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--surface);transition:all 0.15s;}
+  .mark-btn.anladim{color:var(--success);}
+  .mark-btn.anladim.active{background:rgba(52,211,153,0.15);border-color:var(--success);}
+  .mark-btn.tekrar{color:var(--warning);}
+  .mark-btn.tekrar.active{background:rgba(251,191,36,0.15);border-color:var(--warning);}
+
+  .primary-btn{width:100%;padding:16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:16px;font-weight:600;cursor:pointer;margin-top:8px;}
+  .primary-btn:active{opacity:0.8;}
+  .primary-btn:disabled{opacity:0.3;}
+  .secondary-btn{width:100%;padding:14px;background:var(--surface);color:var(--accent2);border:1px solid var(--border);border-radius:var(--radius);font-size:15px;font-weight:500;cursor:pointer;margin-top:8px;}
+
+  /* LOADING */
+  .loading-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:16px;}
+  .spinner{width:38px;height:38px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loading-text{font-size:14px;color:var(--muted);text-align:center;}
+
+  /* IMG MODAL */
+  .img-modal{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.95);flex-direction:column;}
+  .img-modal.show{display:flex;}
+  .img-modal-bar{display:flex;align-items:center;justify-content:flex-end;padding:calc(var(--safe-top) + 8px) 16px 8px;}
+  .img-modal-close{background:rgba(255,255,255,0.15);border:none;color:#fff;width:40px;height:40px;border-radius:20px;font-size:22px;cursor:pointer;}
+  .img-modal-scroll{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;-webkit-overflow-scrolling:touch;}
+  .img-modal-scroll img{width:100%;height:auto;display:block;background:#fff;}
+
+  .empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
+  .empty-state .ei{font-size:40px;margin-bottom:12px;}
+
+  .toast{position:fixed;bottom:calc(var(--safe-bottom) + 80px);left:50%;transform:translateX(-50%);background:var(--surface3);border:1px solid var(--border);border-radius:20px;padding:10px 20px;font-size:14px;color:var(--text);opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;z-index:998;}
+  .toast.show{opacity:1;}
+
+  /* NOT ALANI */
+  .note-block{margin:16px 0;}
+  .note-input{width:100%;min-height:80px;background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:12px 14px;color:var(--text);font-size:14px;line-height:1.6;font-family:inherit;outline:none;resize:vertical;-webkit-appearance:none;}
+  .note-input:focus{border-color:var(--warning);}
+  .note-input::placeholder{color:var(--muted);}
+
+  /* AKILLI CALISMA */
+  .smart-bar{padding:12px 16px;border-bottom:1px solid var(--border);position:sticky;background:var(--bg);z-index:39;}
+  .smart-btn{width:100%;padding:14px;border-radius:var(--radius);font-size:15px;font-weight:700;cursor:pointer;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+  .smart-btn:active{opacity:0.85;}
+
+  .seans-modal{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:flex-end;}
+  .seans-modal.show{display:flex;}
+  .seans-card{width:100%;background:var(--surface);border-top-left-radius:24px;border-top-right-radius:24px;border:1px solid var(--border);padding:24px 20px calc(var(--safe-bottom) + 24px);animation:slideUp 0.25s ease;}
+  @keyframes slideUp{from{transform:translateY(100%);}to{transform:none;}}
+  .seans-title{font-size:20px;font-weight:800;margin-bottom:4px;}
+  .seans-sub{font-size:14px;color:var(--muted);margin-bottom:20px;}
+  .seans-options{display:flex;gap:10px;margin-bottom:16px;}
+  .seans-opt{flex:1;padding:18px 8px;border-radius:14px;border:1.5px solid var(--border);background:var(--surface2);text-align:center;cursor:pointer;transition:all 0.15s;}
+  .seans-opt.active{border-color:var(--accent);background:rgba(91,155,246,0.12);}
+  .seans-opt .dk{font-size:22px;font-weight:800;color:var(--accent2);}
+  .seans-opt .lbl{font-size:12px;color:var(--muted);margin-top:2px;}
+  .seans-preview{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px;font-size:13px;line-height:1.6;color:var(--muted);}
+  .seans-preview .pv-row{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+  .seans-preview .pv-row:last-child{margin-bottom:0;}
+
+  /* GERI SAYIM BAR */
+  .seans-timer-bar{display:flex;align-items:center;gap:12px;padding:10px 16px;background:linear-gradient(135deg,rgba(91,155,246,0.15),rgba(125,180,255,0.05));border-bottom:1px solid var(--border);position:sticky;top:0;z-index:45;}
+  .seans-timer{font-size:18px;font-weight:800;color:var(--accent2);font-variant-numeric:tabular-nums;}
+  .seans-timer.warn{color:var(--warning);}
+  .seans-timer.danger{color:var(--danger);}
+  .seans-step-info{font-size:13px;color:var(--muted);}
+  .seans-quit{margin-left:auto;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:10px;font-size:13px;cursor:pointer;}
+  .seans-cat-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:10px;text-transform:uppercase;letter-spacing:0.5px;}
+  .cat-tekrar{background:rgba(251,191,36,0.15);color:var(--warning);}
+  .cat-zayif{background:rgba(248,113,113,0.15);color:var(--danger);}
+  .cat-yeni{background:rgba(91,155,246,0.15);color:var(--accent2);}
+  .cat-tazeleme{background:rgba(52,211,153,0.15);color:var(--success);}
+
+  ::-webkit-scrollbar{display:none;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ SETUP ═══════════ -->
+<div class="screen active" id="screen-setup">
+  <div class="setup-wrap">
+    <div class="hero">
+      <h1>Probe<span>Vault</span></h1>
+      <p>Çıkmış soruyu seç, önce hazırlan, kısa testi geç, sonra gerçek soruyu çöz. Her şey lokal.</p>
+    </div>
+
+    <div class="step-label">1 — API Anahtarı (.txt)</div>
+    <input type="file" id="key-input" accept=".txt" onchange="loadKey(event)">
+    <div class="drop-zone" id="key-zone" onclick="document.getElementById('key-input').click()">
+      <div class="drop-icon">🔑</div>
+      <div class="drop-title" id="key-title">key.txt seç</div>
+      <div class="drop-sub" id="key-sub">Anahtar dosyanı yükle</div>
+    </div>
+
+    <div class="step-label">2 — Çözüm Dosyası (JSON)</div>
+    <input type="file" id="json-input" accept=".json" onchange="loadJson(event)">
+    <div class="drop-zone" id="json-zone" onclick="document.getElementById('json-input').click()">
+      <div class="drop-icon">📋</div>
+      <div class="drop-title" id="json-title">output.json seç</div>
+      <div class="drop-sub" id="json-sub">Çözümler ve hazırlık verisi</div>
+    </div>
+
+    <div class="step-label">3 — Soru Görselleri (PNG)</div>
+    <input type="file" id="png-input" accept="image/*" multiple onchange="loadPngs(event)">
+    <div class="drop-zone" id="png-zone" onclick="document.getElementById('png-input').click()">
+      <div class="drop-icon">🖼️</div>
+      <div class="drop-title" id="png-title">PNG'leri seç</div>
+      <div class="drop-sub" id="png-sub">Tüm soru görsellerini birden</div>
+    </div>
+
+    <div class="step-label">4 — İlerleme (opsiyonel)</div>
+    <input type="file" id="prog-input" accept=".json" onchange="loadProgress(event)">
+    <div class="drop-zone" id="prog-zone" onclick="document.getElementById('prog-input').click()">
+      <div class="drop-icon">📈</div>
+      <div class="drop-title" id="prog-title">progress.json seç</div>
+      <div class="drop-sub" id="prog-sub">Önceki ilerlemen — yoksa sıfırdan başlar</div>
+    </div>
+
+    <button class="start-btn" id="start-btn" disabled onclick="enterApp()">Başla →</button>
+    <p class="hint">API + JSON zorunlu. Görseller olmadan da çalışır (soru metin gösterilir).</p>
+  </div>
+</div>
+
+<!-- ═══════════ LIST ═══════════ -->
+<div class="screen" id="screen-list">
+  <div class="topbar">
+    <div class="logo">ProbeVault</div>
+    <div class="topbar-meta" id="list-count"></div>
+    <button class="icon-btn" onclick="downloadProgress()" title="İlerlemeyi indir">⬇️</button>
+    <button class="icon-btn" onclick="goSetup()" title="Yeni dosya">↻</button>
+  </div>
+  <div class="filters" id="filters"></div>
+  <div class="smart-bar">
+    <button class="smart-btn" onclick="openSeansModal()">⏱️ Akıllı Çalışma Başlat</button>
+  </div>
+  <div class="q-list" id="q-list"></div>
+</div>
+
+<!-- SEANS SURE MODAL -->
+<div class="seans-modal" id="seans-modal">
+  <div class="seans-card">
+    <div class="seans-title">⏱️ Akıllı Çalışma</div>
+    <div class="seans-sub">Süreni seç — sana en uygun soruları seçeyim</div>
+    <div class="seans-options" id="seans-options"></div>
+    <div class="seans-preview" id="seans-preview"></div>
+    <button class="primary-btn" id="seans-start-btn" onclick="startSeans()">Başlat →</button>
+    <button class="secondary-btn" onclick="closeSeansModal()">Vazgeç</button>
+  </div>
+</div>
+
+<!-- ═══════════ STAGE (öğren/test/çöz) ═══════════ -->
+<div class="screen" id="screen-stage">
+  <div class="topbar">
+    <button class="back-btn" onclick="goList()">‹ Sorular</button>
+    <div class="topbar-meta" id="stage-pos"></div>
+    <button class="icon-btn" onclick="downloadProgress()" title="İlerlemeyi indir">⬇️</button>
+  </div>
+  <div class="seans-timer-bar" id="seans-timer-bar" style="display:none;">
+    <div class="seans-timer" id="seans-timer-display">15:00</div>
+    <div class="seans-step-info" id="seans-step-info"></div>
+    <button class="seans-quit" onclick="quitSeans()">Bitir</button>
+  </div>
+  <div class="stage-tabs">
+    <div class="stage-tab" id="tab-learn" onclick="switchStage('learn')">📖 Öğren</div>
+    <div class="stage-tab" id="tab-quiz" onclick="switchStage('quiz')">🎯 Test</div>
+    <div class="stage-tab" id="tab-solve" onclick="switchStage('solve')">📝 Çöz</div>
+  </div>
+  <div class="stage-scroll" id="stage-scroll"></div>
+</div>
+
+<!-- ═══════════ IMG MODAL ═══════════ -->
+<div class="img-modal" id="img-modal">
+  <div class="img-modal-bar"><button class="img-modal-close" onclick="closeZoom()">✕</button></div>
+  <div class="img-modal-scroll" id="img-modal-scroll"><img id="img-modal-img" src="" alt="soru"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════ STATE ════════
+let apiKey='';
+let questions=[];
+let pngMap={};
+let filtered=[];
+let activeFilter='hepsi';
+let currentIndex=0;       // filtered icindeki index
+let currentStage='learn';
+// progress[dosya] = {durum, not, test_gecmisi:[{tarih,skor,toplam,seviyeler}], goruntuleme, ilk_tarih, son_tarih, derine_acildi, cozum_goruldu}
+let progress={};
+function getProg(dosya){
+  if(!progress[dosya]){
+    progress[dosya]={durum:null,not:'',test_gecmisi:[],goruntuleme:0,ilk_tarih:null,son_tarih:null,derine_acildi:false,cozum_goruldu:false};
+  }
+  return progress[dosya];
+}
+function nowISO(){return new Date().toISOString();}
+
+// ════════ AKILLI ÇALIŞMA SEANSI ════════
+let seansAktif=false;
+let seansSorular=[];      // seans icin secilen sorular (questions referanslari)
+let seansIndex=0;
+let seansSure=15;         // dakika
+let seansBitis=0;         // timestamp
+let seansTimer=null;
+
+// Akilli secim: durumuna gore dengeli paket kur
+function akilliSec(hedefSayi){
+  const simdi=Date.now();
+  // Her soruya skor ver - dusuk skor = oncelik
+  const puanli=questions.map(q=>{
+    const p=progress[q.dosya]||{};
+    let oncelik=0;
+    let kategori='yeni';
+
+    // Tekrar Bak isaretli -> en yuksek oncelik
+    if(p.durum==='tekrar'){oncelik+=100;kategori='tekrar';}
+    // Anladim isaretli -> dusuk oncelik (zaten biliyor)
+    else if(p.durum==='anladim')oncelik-=30;
+
+    // Zayif: test gecmisi var ama son skor dusuk
+    if(p.test_gecmisi&&p.test_gecmisi.length){
+      const son=p.test_gecmisi[p.test_gecmisi.length-1];
+      const oran=son.skor/son.toplam;
+      if(oran<0.6){oncelik+=80;kategori='zayif';}
+      else if(oran<0.8){oncelik+=40;if(kategori==='yeni')kategori='zayif';}
+    }else{
+      // Hic test edilmemis -> yeni, orta oncelik
+      oncelik+=50;
+    }
+
+    // Tazeleme: uzun suredir gorulmedi (spaced repetition)
+    if(p.son_tarih){
+      const gun=(simdi-new Date(p.son_tarih).getTime())/(1000*60*60*24);
+      if(gun>7){oncelik+=30;if(kategori==='yeni'||kategori==='anladim')kategori='tazeleme';}
+      else if(gun>3)oncelik+=15;
+    }
+
+    // Biraz rastgelelik (hep ayni sira gelmesin)
+    oncelik+=Math.random()*20;
+    return {q,oncelik,kategori};
+  });
+
+  puanli.sort((a,b)=>b.oncelik-a.oncelik);
+  return puanli.slice(0,hedefSayi);
+}
+
+// Sure -> soru sayisi (1 soru ~5-6 dk)
+function sureToSoru(dk){return Math.max(2,Math.round(dk/5));}
+
+// ── SEANS MODAL ──
+function openSeansModal(){
+  const opts=document.getElementById('seans-options');
+  opts.innerHTML='';
+  [15,30,45].forEach(dk=>{
+    const el=document.createElement('div');
+    el.className='seans-opt'+(dk===seansSure?' active':'');
+    el.innerHTML=`<div class="dk">${dk}</div><div class="lbl">dakika</div>`;
+    el.onclick=()=>{seansSure=dk;openSeansModal();};
+    opts.appendChild(el);
+  });
+  const sayi=sureToSoru(seansSure);
+  const secim=akilliSec(sayi);
+  const katSay={tekrar:0,zayif:0,yeni:0,tazeleme:0};
+  secim.forEach(s=>katSay[s.kategori]++);
+  const katAd={tekrar:'🔖 Tekrar Bak',zayif:'🔴 Zayıf konu',yeni:'🆕 Yeni',tazeleme:'🔄 Tazeleme'};
+  let pv=`<div class="pv-row"><strong style="color:var(--text);">${sayi} soru</strong> seçilecek (~${seansSure} dk):</div>`;
+  Object.entries(katSay).forEach(([k,n])=>{if(n>0)pv+=`<div class="pv-row">${katAd[k]}: ${n}</div>`;});
+  document.getElementById('seans-preview').innerHTML=pv;
+  document.getElementById('seans-modal').classList.add('show');
+}
+function closeSeansModal(){document.getElementById('seans-modal').classList.remove('show');}
+
+// ── SEANS BASLAT ──
+function startSeans(){
+  const sayi=sureToSoru(seansSure);
+  const secim=akilliSec(sayi);
+  seansSorular=secim.map(s=>({...s.q,_kategori:s.kategori}));
+  seansIndex=0;
+  seansAktif=true;
+  seansBitis=Date.now()+seansSure*60*1000;
+  closeSeansModal();
+  filtered=seansSorular;
+  startTimer();
+  openStage(0);
+}
+function startTimer(){
+  if(seansTimer)clearInterval(seansTimer);
+  seansTimer=setInterval(updateTimer,1000);
+  updateTimer();
+}
+function updateTimer(){
+  const kalan=Math.max(0,seansBitis-Date.now());
+  const dk=Math.floor(kalan/60000);
+  const sn=Math.floor((kalan%60000)/1000);
+  const el=document.getElementById('seans-timer-display');
+  if(el){
+    el.textContent=`${dk}:${String(sn).padStart(2,'0')}`;
+    el.className='seans-timer'+(kalan<60000?' danger':kalan<180000?' warn':'');
+  }
+  if(kalan<=0){clearInterval(seansTimer);seansBitti(true);}
+}
+function seansBitti(sureDoldu){
+  seansAktif=false;
+  if(seansTimer)clearInterval(seansTimer);
+  show('screen-list');
+  buildFilters();applyFilter('hepsi');
+  showToast(sureDoldu?'⏱️ Süre doldu! İyi çalıştın.':'✓ Seans tamamlandı!');
+}
+function quitSeans(){if(confirm('Çalışma seansını bitir?')){seansBitti(false);}}
+function seansSonraki(){
+  seansIndex++;
+  if(seansIndex>=seansSorular.length){
+    seansAktif=false;
+    if(seansTimer)clearInterval(seansTimer);
+    show('screen-list');buildFilters();applyFilter('hepsi');
+    showToast('🎉 Tüm sorular tamamlandı! Harika.');
+    return;
+  }
+  openStage(seansIndex);
+}
+
+let learnCache={};        // dosya -> learn HTML
+let derineCache={};       // dosya -> derinlestirilmis HTML
+let quizCache={};         // dosya -> quiz sorulari
+let quizState={};         // dosya -> {answered, correct, total}
+
+// ════════ DOSYA YUKLEME ════════
+function loadKey(e){
+  const file=e.target.files[0]; if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const k=ev.target.result.trim();
+    if(!k.startsWith('sk-')){document.getElementById('key-title').textContent='⚠️ Geçersiz anahtar';return;}
+    apiKey=k;
+    document.getElementById('key-zone').classList.add('loaded');
+    document.getElementById('key-title').textContent='✓ '+file.name;
+    document.getElementById('key-sub').textContent='Anahtar yüklendi';
+    checkReady();
+  };
+  r.readAsText(file);
+}
+
+function loadProgress(e){
+  const file=e.target.files[0]; if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      progress=(data&&typeof data==='object')?data:{};
+      document.getElementById('prog-zone').classList.add('loaded');
+      document.getElementById('prog-title').textContent='✓ '+file.name;
+      const n=Object.keys(progress).length;
+      document.getElementById('prog-sub').textContent=n+' soruda ilerleme yüklendi';
+    }catch(err){
+      document.getElementById('prog-title').textContent='⚠️ Geçersiz dosya';
+    }
+  };
+  r.readAsText(file);
+}
+
+function loadJson(e){
+  const file=e.target.files[0]; if(!file)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!Array.isArray(data))throw 0;
+      questions=data.filter(q=>!q.hata);
+      document.getElementById('json-zone').classList.add('loaded');
+      document.getElementById('json-title').textContent='✓ '+file.name;
+      document.getElementById('json-sub').textContent=questions.length+' soru yüklendi';
+      checkReady();
+    }catch(err){
+      document.getElementById('json-title').textContent='⚠️ Geçersiz JSON';
+    }
+  };
+  r.readAsText(file);
+}
+
+function loadPngs(e){
+  const files=Array.from(e.target.files); if(!files.length)return;
+  pngMap={}; let loaded=0; const total=files.length;
+  document.getElementById('png-title').textContent='Yükleniyor… 0/'+total;
+  files.forEach(f=>{
+    const r=new FileReader();
+    r.onload=ev=>{
+      pngMap[f.name]=ev.target.result;
+      loaded++;
+      document.getElementById('png-title').textContent='Yükleniyor… '+loaded+'/'+total;
+      if(loaded===total){
+        document.getElementById('png-zone').classList.add('loaded');
+        document.getElementById('png-title').textContent='✓ '+total+' görsel';
+        document.getElementById('png-sub').textContent='Sorularla eşleşecek';
+      }
+    };
+    r.readAsDataURL(f);
+  });
+}
+
+function checkReady(){
+  document.getElementById('start-btn').disabled=!(apiKey.startsWith('sk-')&&questions.length>0);
+}
+
+// ════════ NAV ════════
+function downloadProgress(){
+  const blob=new Blob([JSON.stringify(progress,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const tarih=new Date().toISOString().slice(0,10);
+  a.href=url;a.download='progress_'+tarih+'.json';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const n=Object.keys(progress).length;
+  showToast('📈 İlerleme indirildi ('+n+' soru)');
+}
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function goSetup(){show('screen-setup');}
+function goList(){
+  if(seansAktif){seansAktif=false;if(seansTimer)clearInterval(seansTimer);}
+  show('screen-list');buildFilters();renderList();
+}
+function enterApp(){buildFilters();applyFilter('hepsi');show('screen-list');}
+
+// ════════ FILTRELER ════════
+function buildFilters(){
+  const konular={};
+  questions.forEach(q=>{const a=anaKonu(q.konu||'');konular[a]=(konular[a]||0)+1;});
+  const fc=document.getElementById('filters');fc.innerHTML='';
+  addChip('hepsi','Hepsi ('+questions.length+')');
+  // tekrar bak
+  const tb=questions.filter(q=>(progress[q.dosya]||{}).durum==='tekrar').length;
+  if(tb>0)addChip('tekrar','🔖 Tekrar Bak ('+tb+')');
+  // zorluk
+  ['kolay','orta','zor'].forEach(z=>{const n=questions.filter(q=>q.zorluk===z).length;if(n)addChip('zor:'+z,cap(z)+' ('+n+')');});
+  const uyN=questions.filter(q=>isUyusmaz(q)).length;
+  if(uyN)addChip('uyari','⚠️ Uyuşmaz ('+uyN+')');
+  Object.entries(konular).sort((a,b)=>b[1]-a[1]).forEach(([k,n])=>addChip('konu:'+k,k+' ('+n+')'));
+}
+function addChip(id,label){const c=document.createElement('div');c.className='chip'+(id===activeFilter?' active':'');c.textContent=label;c.onclick=()=>applyFilter(id);document.getElementById('filters').appendChild(c);}
+function applyFilter(id){
+  activeFilter=id;
+  if(id==='hepsi')filtered=questions.slice();
+  else if(id==='tekrar')filtered=questions.filter(q=>(progress[q.dosya]||{}).durum==='tekrar');
+  else if(id==='uyari')filtered=questions.filter(q=>isUyusmaz(q));
+  else if(id.startsWith('zor:'))filtered=questions.filter(q=>q.zorluk===id.slice(4));
+  else if(id.startsWith('konu:'))filtered=questions.filter(q=>anaKonu(q.konu||'')===id.slice(5));
+  buildFilters();renderList();
+}
+
+// ════════ LISTE ════════
+function renderList(){
+  document.getElementById('list-count').textContent=filtered.length+' soru';
+  const list=document.getElementById('q-list');
+  if(!filtered.length){list.innerHTML='<div class="empty-state"><div class="ei">🔍</div>Bu filtreyle soru yok</div>';return;}
+  list.innerHTML='';
+  filtered.forEach((q,i)=>{
+    const card=document.createElement('div');card.className='q-card';
+    const zorluk=q.zorluk||'orta';
+    const uyari=isUyusmaz(q)?'<span class="badge badge-warn">⚠️</span>':'';
+    const p=progress[q.dosya]||{};
+    const mark=p.durum;
+    const markDot=mark==='anladim'?'<span class="mark-dot">✅</span>':mark==='tekrar'?'<span class="mark-dot">🔖</span>':'';
+    const notDot=(p.not&&p.not.trim())?'<span class="mark-dot" title="Notun var">📝</span>':'';
+    const testDot=(p.test_gecmisi&&p.test_gecmisi.length)?`<span class="mark-dot" title="${p.test_gecmisi.length} test">🎯</span>`:'';
+    card.innerHTML=`
+      <div class="q-card-top">
+        <span class="q-num">#${i+1}</span>
+        <div class="q-badges">${notDot}${testDot}${markDot}${uyari}<span class="badge badge-${zorluk}">${zorluk}</span></div>
+      </div>
+      <div class="q-konu">${esc(q.konu||'Konu yok')}</div>
+      <div class="q-preview">${esc((q.soru_metni||'').slice(0,160))}</div>
+      <div class="q-file">📎 ${esc(q.dosya||'')}</div>`;
+    card.onclick=()=>openStage(i);
+    list.appendChild(card);
+  });
+}
+
+// ════════ STAGE AKIS ════════
+function openStage(idx){
+  currentIndex=idx;currentStage='learn';
+  const q=filtered[currentIndex];
+  const p=getProg(q.dosya);
+  p.goruntuleme=(p.goruntuleme||0)+1;
+  if(!p.ilk_tarih)p.ilk_tarih=nowISO();
+  p.son_tarih=nowISO();
+  // Seans timer bari
+  const bar=document.getElementById('seans-timer-bar');
+  if(seansAktif){
+    bar.style.display='flex';
+    const katAd={tekrar:'🔖 Tekrar Bak',zayif:'🔴 Zayıf',yeni:'🆕 Yeni',tazeleme:'🔄 Tazeleme'};
+    const kat=q._kategori||'yeni';
+    document.getElementById('seans-step-info').innerHTML=`Soru ${seansIndex+1}/${seansSorular.length} · <span class="seans-cat-badge cat-${kat}">${katAd[kat]||''}</span>`;
+  }else{
+    bar.style.display='none';
+  }
+  renderStageTabs();renderStage();show('screen-stage');
+}
+
+function renderStageTabs(){
+  const q=filtered[currentIndex];
+  document.getElementById('stage-pos').textContent=(currentIndex+1)+' / '+filtered.length;
+  ['learn','quiz','solve'].forEach(s=>{
+    const t=document.getElementById('tab-'+s);
+    t.classList.toggle('active',currentStage===s);
+  });
+  const qs=quizState[q.dosya];
+  const quizTab=document.getElementById('tab-quiz');
+  if(qs&&qs.total>0&&qs.correct/qs.total>=0.6)quizTab.classList.add('done');else quizTab.classList.remove('done');
+}
+
+function switchStage(s){currentStage=s;renderStageTabs();renderStage();}
+
+function renderStage(){
+  if(currentStage==='learn')renderLearn();
+  else if(currentStage==='quiz')renderQuiz();
+  else renderSolve();
+}
+
+// ════════ ÖĞREN ════════
+async function renderLearn(){
+  const q=filtered[currentIndex];
+  const scroll=document.getElementById('stage-scroll');
+
+  // 1) Statik ogren verisi varsa direkt goster (API yok)
+  if(q.ogren){
+    showLearnContent(q,q.ogren);
+    return;
+  }
+  // 2) Daha once API ile uretildiyse cache'den
+  if(learnCache[q.dosya]){
+    showLearnContent(q,learnCache[q.dosya]);
+    return;
+  }
+  // 3) Hicbiri yoksa API'ye git
+  scroll.innerHTML='<div class="loading-wrap"><div class="spinner"></div><div class="loading-text">Bu soru için hazırlık dersi oluşturuluyor…</div></div>';
+  const prompt=buildLearnPrompt(q);
+  const html=await callClaude(prompt);
+  if(!html){scroll.innerHTML='<div class="empty-state"><div class="ei">⚠️</div>Ders oluşturulamadı. Tekrar dene.</div>';return;}
+  learnCache[q.dosya]=html;
+  showLearnContent(q,html);
+}
+
+function showLearnContent(q,html){
+  const scroll=document.getElementById('stage-scroll');
+  scroll.innerHTML=`
+    <div class="detail-konu">${esc(q.konu||'')}</div>
+    <div class="detail-badges"><span class="badge badge-${q.zorluk||'orta'}">${q.zorluk||'orta'}</span></div>
+    <div class="learn-box">${html}</div>
+    <button class="reveal-btn" id="derine-btn" onclick="derineIn()">🔍 Derine İn (Kitap Seviyesi)</button>
+    <div class="section-block" id="blk-derine"></div>
+    <button class="primary-btn" onclick="switchStage('quiz')">Teste Geç →</button>
+  `;
+  scroll.scrollTop=0;
+}
+
+async function derineIn(){
+  const q=filtered[currentIndex];
+  const blk=document.getElementById('blk-derine');
+  const btn=document.getElementById('derine-btn');
+
+  // Cache varsa direkt goster
+  if(derineCache[q.dosya]){
+    blk.innerHTML=`<div class="learn-box" style="margin-top:4px;">${derineCache[q.dosya]}</div>`;
+    blk.classList.add('show');
+    btn.style.display='none';
+    return;
+  }
+
+  btn.disabled=true;
+  blk.classList.add('show');
+  blk.innerHTML='<div class="loading-wrap"><div class="spinner"></div><div class="loading-text">Konu kitap seviyesinde derinleştiriliyor…</div></div>';
+  getProg(q.dosya).derine_acildi=true;
+  getProg(q.dosya).son_tarih=nowISO();
+
+  const html=await callClaude(buildDerinePrompt(q),3000);
+  if(!html){blk.innerHTML='<div class="empty-state"><div class="ei">⚠️</div>Oluşturulamadı.</div>';btn.disabled=false;return;}
+  derineCache[q.dosya]=html;
+  blk.innerHTML=`<div class="learn-box" style="margin-top:4px;">${html}</div>`;
+  btn.style.display='none';
+}
+
+// ════════ TEST ════════
+async function renderQuiz(){
+  const q=filtered[currentIndex];
+  const scroll=document.getElementById('stage-scroll');
+
+  // 1) Statik havuz varsa: dengeli 5 rastgele sec (API yok)
+  if(q.hazirlik_havuzu&&q.hazirlik_havuzu.length>0){
+    const secilen=havuzdanSec(q.hazirlik_havuzu,5);
+    startQuiz(q,secilen);
+    return;
+  }
+  // 2) Daha once API ile uretildiyse
+  if(quizCache[q.dosya]){
+    startQuiz(q,quizCache[q.dosya]);
+    return;
+  }
+  // 3) API'ye git
+  scroll.innerHTML='<div class="loading-wrap"><div class="spinner"></div><div class="loading-text">Hazırlık testi oluşturuluyor…</div></div>';
+  const qs=await callClaudeJSON(buildQuizPrompt(q));
+  if(!qs){scroll.innerHTML='<div class="empty-state"><div class="ei">⚠️</div>Test oluşturulamadı.</div>';return;}
+  quizCache[q.dosya]=qs;
+  startQuiz(q,qs);
+}
+
+// Havuzdan dengeli rastgele secim (kolay/orta/zor dagilimini korur)
+function havuzdanSec(havuz,n){
+  const grupla={kolay:[],orta:[],zor:[]};
+  havuz.forEach(s=>{const sv=s.seviye||'orta';(grupla[sv]||grupla.orta).push(s);});
+  // Hedef dagilim: ~2 kolay, 2 orta, 1 zor (5 icin)
+  const hedef={kolay:2,orta:2,zor:1};
+  let secilen=[];
+  for(const sv of ['kolay','orta','zor']){
+    const karistir=shuffle(grupla[sv].slice());
+    secilen=secilen.concat(karistir.slice(0,hedef[sv]));
+  }
+  // Eksik kaldiysa kalan havuzdan tamamla
+  if(secilen.length<n){
+    const kalan=shuffle(havuz.filter(s=>!secilen.includes(s)));
+    secilen=secilen.concat(kalan.slice(0,n-secilen.length));
+  }
+  // Kolaydan zora sirala (gosterim icin)
+  const sira={kolay:0,orta:1,zor:2};
+  return secilen.slice(0,n).sort((a,b)=>(sira[a.seviye||'orta'])-(sira[b.seviye||'orta']));
+}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+
+let curQuiz=[],curQIdx=0,curQCorrect=0;
+function startQuiz(q,qs){
+  curQuiz=qs;curQIdx=0;curQCorrect=0;
+  renderQuizQ(q);
+}
+function renderQuizQ(q){
+  const scroll=document.getElementById('stage-scroll');
+  const item=curQuiz[curQIdx];
+  const total=curQuiz.length;
+  const labels=['A','B','C','D'];
+  scroll.innerHTML=`
+    <div class="q-progress"><div class="q-progress-fill" style="width:${(curQIdx/total)*100}%"></div></div>
+    <div class="quiz-counter">Soru ${curQIdx+1} / ${total}</div>
+    <div class="quiz-q">${esc(item.question)}</div>
+    <div id="quiz-opts"></div>
+    <div class="fb" id="quiz-fb"></div>
+    <div id="quiz-next"></div>
+  `;
+  const opts=document.getElementById('quiz-opts');
+  item.options.forEach((o,i)=>{
+    const el=document.createElement('div');el.className='opt';
+    el.innerHTML=`<div class="opt-l">${labels[i]}</div><div>${esc(o)}</div>`;
+    el.onclick=()=>answerQuiz(i,item,labels,q);
+    opts.appendChild(el);
+  });
+  scroll.scrollTop=0;
+}
+function answerQuiz(chosen,item,labels,q){
+  const opts=document.querySelectorAll('#quiz-opts .opt');
+  opts.forEach(o=>{o.onclick=null;});
+  const correct=item.correct;
+  const isC=chosen===correct;
+  opts[chosen].classList.add(isC?'correct':'wrong');
+  if(!isC)opts[correct].classList.add('correct');
+  const fb=document.getElementById('quiz-fb');
+  fb.className='fb show '+(isC?'correct':'wrong');
+  fb.innerHTML=(isC?'<b>✓ Doğru!</b> ':'<b>✗ Yanlış — Cevap '+labels[correct]+'</b> ')+esc(item.explanation||'');
+  if(isC)curQCorrect++;
+  const last=curQIdx===curQuiz.length-1;
+  const btn=document.createElement('button');
+  btn.className='primary-btn';
+  btn.textContent=last?'Testi Bitir':'Sonraki →';
+  btn.onclick=()=>{
+    if(last)finishQuiz(q);
+    else{curQIdx++;renderQuizQ(q);}
+  };
+  document.getElementById('quiz-next').appendChild(btn);
+}
+function finishQuiz(q){
+  quizState[q.dosya]={total:curQuiz.length,correct:curQCorrect};
+  // Progress'e test gecmisi ekle
+  const p=getProg(q.dosya);
+  const seviyeler={};
+  curQuiz.forEach(s=>{const sv=s.seviye||'orta';seviyeler[sv]=(seviyeler[sv]||0)+1;});
+  p.test_gecmisi.push({tarih:nowISO(),skor:curQCorrect,toplam:curQuiz.length,seviyeler:seviyeler});
+  p.son_tarih=nowISO();
+  const pct=Math.round((curQCorrect/curQuiz.length)*100);
+  const scroll=document.getElementById('stage-scroll');
+  const gecti=pct>=60;
+  scroll.innerHTML=`
+    <div class="empty-state">
+      <div class="ei">${gecti?'🎉':'📚'}</div>
+      <div style="font-size:32px;font-weight:800;color:var(--accent2);">${curQCorrect}/${curQuiz.length}</div>
+      <div style="font-size:15px;color:var(--muted);margin-top:6px;">${gecti?'Hazırsın! Gerçek soruya geçebilirsin.':'Biraz daha çalışman iyi olur.'}</div>
+    </div>
+    <div id="finish-actions"></div>
+  `;
+  const fa=document.getElementById('finish-actions');
+  if(gecti){
+    const b=document.createElement('button');
+    b.className='primary-btn';b.textContent='Gerçek Soruyu Çöz →';
+    b.onclick=()=>switchStage('solve');
+    fa.appendChild(b);
+  }
+  const r=document.createElement('button');
+  r.className='secondary-btn';r.textContent='Testi Tekrar Yap';
+  r.onclick=retryQuiz;fa.appendChild(r);
+  const l=document.createElement('button');
+  l.className='secondary-btn';l.textContent='Dersi Tekrar Oku';
+  l.onclick=()=>switchStage('learn');fa.appendChild(l);
+  renderStageTabs();
+}
+function retryQuiz(){
+  const q=filtered[currentIndex];
+  // Havuz varsa yeni rastgele 5 cek, yoksa cache'i tekrar kullan
+  if(q.hazirlik_havuzu&&q.hazirlik_havuzu.length>0){
+    startQuiz(q,havuzdanSec(q.hazirlik_havuzu,5));
+  }else{
+    startQuiz(q,quizCache[q.dosya]);
+  }
+}
+
+// ════════ ÇÖZ ════════
+function renderSolve(){
+  const q=filtered[currentIndex];
+  const scroll=document.getElementById('stage-scroll');
+  const zorluk=q.zorluk||'orta';
+
+  let imgHtml;
+  const blob=pngMap[q.dosya];
+  if(blob){
+    imgHtml=`<div class="q-image-wrap" onclick="openZoom('${blob}')"><img src="${blob}" alt="soru"><div class="zoom-hint">🔍 Büyütmek için dokun</div></div>`;
+  }else{
+    imgHtml=`<div class="q-image-missing">🖼️ Görsel yok<br><span style="font-size:11px;">${esc(q.dosya||'')}</span><br><br><div style="text-align:left;font-size:14px;color:var(--text);line-height:1.6;">${esc(q.soru_metni||'')}</div></div>`;
+  }
+
+  const kontrol=q.cevap_anahtari_kontrolu||{};
+  let anahtarHtml='';
+  if(kontrol.anahtar_var_mi){
+    const uy=kontrol.uyusuyor_mu;
+    anahtarHtml=`<div class="anahtar-box">
+      <div class="anahtar-row"><span class="lbl">Cevap Anahtarı</span><span class="val">${esc(String(kontrol.anahtar_deger||'—'))}</span></div>
+      <div class="anahtar-row"><span class="lbl">Durum</span><span class="val" style="color:${uy?'var(--success)':'var(--danger)'}">${uy?'✓ Uyuşuyor':'✗ Uyuşmuyor'}</span></div>
+      ${!uy&&kontrol.not?`<div class="uyari-not">${esc(kontrol.not)}</div>`:''}
+    </div>`;
+  }
+
+  const adimlar=(q.cozum_adimlari||[]).map(a=>`<div class="step">${esc(a)}</div>`).join('');
+  const bil=(q.bunlari_bil||[]).map(b=>`<li>${esc(b)}</li>`).join('');
+  const kws=(q.anahtar_kelimeler||[]).map(k=>`<span class="kw">${esc(k)}</span>`).join('');
+  const p=getProg(q.dosya);
+  const mark=p.durum;
+
+  scroll.innerHTML=`
+    <div class="detail-konu">${esc(q.konu||'')}</div>
+    <div class="detail-badges"><span class="badge badge-${zorluk}">${zorluk}</span>${isUyusmaz(q)?'<span class="badge badge-warn">⚠️ Cevap Uyuşmaz</span>':''}</div>
+    ${imgHtml}
+    ${kws?`<div class="keywords">${kws}</div>`:''}
+    <button class="reveal-btn" onclick="toggleBlock('cozum')" id="rb-cozum">📝 Çözümü Göster</button>
+    <div class="section-block" id="blk-cozum">
+      <div class="block-head">Çözüm Adımları</div>${adimlar}
+      ${q.sonuc?`<div class="sonuc-box"><div class="sl">Sonuç</div>${esc(q.sonuc)}</div>`:''}
+      ${anahtarHtml}
+    </div>
+    <button class="reveal-btn" onclick="toggleBlock('bil')" id="rb-bil">💡 Bunları Bil</button>
+    <div class="section-block" id="blk-bil"><div class="bil-box"><div class="bl">Bilmen Gerekenler</div><ul>${bil}</ul></div></div>
+
+    <div class="note-block">
+      <div class="block-head">📝 Neyi Bilmiyorum? (kendi notun)</div>
+      <textarea class="note-input" id="note-input" placeholder="Bu soruda takıldığın yer, hatırlaman gereken şey, kafana takılan... Buraya yaz." oninput="saveNote()">${esc(p.not||'')}</textarea>
+    </div>
+
+    <div class="mark-row">
+      <button class="mark-btn anladim ${mark==='anladim'?'active':''}" onclick="setMark('anladim')">✅ Anladım</button>
+      <button class="mark-btn tekrar ${mark==='tekrar'?'active':''}" onclick="setMark('tekrar')">🔖 Tekrar Bak</button>
+    </div>
+    ${seansAktif?`<button class="primary-btn" onclick="seansSonraki()">${seansIndex+1>=seansSorular.length?'🎉 Seansı Bitir':'Sonraki Soru →'}</button>`:''}
+  `;
+  scroll.scrollTop=0;
+}
+
+function saveNote(){
+  const q=filtered[currentIndex];
+  getProg(q.dosya).not=document.getElementById('note-input').value;
+  getProg(q.dosya).son_tarih=nowISO();
+}
+
+function setMark(m){
+  const q=filtered[currentIndex];
+  const p=getProg(q.dosya);
+  p.durum=p.durum===m?null:m; // toggle
+  p.son_tarih=nowISO();
+  showToast(p.durum==='anladim'?'✅ Anladım olarak işaretlendi':p.durum==='tekrar'?'🔖 Tekrar Bak listesine eklendi':'İşaret kaldırıldı');
+  // not alanindaki metni kaybetmemek icin sadece butonlari guncelle
+  const btns=document.querySelectorAll('.mark-row .mark-btn');
+  btns[0].classList.toggle('active',p.durum==='anladim');
+  btns[1].classList.toggle('active',p.durum==='tekrar');
+}
+
+function toggleBlock(name){
+  const blk=document.getElementById('blk-'+name);
+  const btn=document.getElementById('rb-'+name);
+  const shown=blk.classList.contains('show');
+  blk.classList.toggle('show');
+  if(name==='cozum'){
+    btn.textContent=shown?'📝 Çözümü Göster':'📝 Çözümü Gizle';
+    if(!shown){const q=filtered[currentIndex];getProg(q.dosya).cozum_goruldu=true;getProg(q.dosya).son_tarih=nowISO();}
+  }
+  if(name==='bil')btn.textContent=shown?'💡 Bunları Bil':'💡 Gizle';
+}
+
+// ════════ ZOOM ════════
+function openZoom(url){document.getElementById('img-modal-img').src=url;document.getElementById('img-modal').classList.add('show');document.getElementById('img-modal-scroll').scrollTop=0;}
+function closeZoom(){document.getElementById('img-modal').classList.remove('show');}
+
+// ════════ PROMPTS ════════
+function buildDerinePrompt(q){
+  const kw=(q.anahtar_kelimeler||[]).join(', ');
+  return `Sen uzman bir aktüerya profesörüsün. Öğrenci "${q.konu}" konusunu DERINLEMESINE öğrenmek istiyor.
+
+Anahtar kavramlar: ${kw}
+
+Bu konuyu ÜNIVERSITE DERS KITABI seviyesinde, kapsamlı şekilde anlat (Klugman'ın Loss Models ve Tse'nin Nonlife Actuarial Models kitapları seviyesinde). Şunları içersin:
+- Kavramın matematiksel temeli ve TÜRETIMI (formüller nereden geliyor)
+- Varsayımlar ve neden gerekli oldukları
+- İlgili teoremler/özellikler
+- Sınavda nasıl çıkar, dikkat edilecek noktalar
+- Yaygın hatalar
+
+TÜM içeriği TÜRKÇE yaz. Temiz HTML kullan (<h3>, <p>, <ul>/<li>, <strong>). Matematiksel ifadeleri düz metin olarak net yaz (örn: E[X] = λ, Var(X) = λ). Detaylı ol ama gereksiz uzatma. Önsöz yazma, direkt içerikle başla.`;
+}
+
+function buildLearnPrompt(q){
+  const bil=(q.bunlari_bil||[]).join('; ');
+  const kw=(q.anahtar_kelimeler||[]).join(', ');
+  return `Sen uzman bir aktüerya eğitmenisin. Bir öğrenci şu konudaki bir sınav sorusunu çözmeye hazırlanıyor: "${q.konu}".
+
+Bu soruyu çözebilmek için bilmesi gereken ön bilgiler: ${bil}
+Anahtar kavramlar: ${kw}
+
+Bu kavramları öğreten KISA bir hazırlık dersi yaz. Kuru teori değil — pratik ve anlaşılır ol, gerçek sigorta örnekleriyle bağ kur. Öğrenci bu dersi okuyunca soruyu çözecek temel bilgiye sahip olmalı.
+
+TÜM içeriği TÜRKÇE yaz. Temiz HTML kullan (<h3> alt başlık, <p> paragraf, <ul>/<li> liste, <strong> vurgu). 300 kelimeyi geçme. Sonuna bu bloğu ekle:
+<div class="real-world-box"><div class="rw-label">📍 Gerçek Hayat</div><p>Bu konunun gerçek sigortacılıkta nasıl kullanıldığına dair somut, akılda kalıcı bir örnek.</p></div>
+
+Önsöz yazma, direkt içerikle başla.`;
+}
+
+function buildQuizPrompt(q){
+  const bil=(q.bunlari_bil||[]).join('; ');
+  return `Aktüerya konusu: "${q.konu}". Ön bilgiler: ${bil}
+
+Bu ön bilgileri ölçen 3 çoktan seçmeli hazırlık sorusu üret. Sorular TÜRKÇE olmalı ve öğrencinin asıl sınav sorusunu çözmeye hazır olup olmadığını test etmeli. Temel kavram ve formülleri sorsun.
+
+SADECE ham JSON dizisi döndür. Markdown yok, backtick yok, açıklama yok. [ ile başla ] ile bitir.
+[{"question":"...","options":["...","...","...","..."],"correct":0,"explanation":"..."},{"question":"...","options":["...","...","...","..."],"correct":1,"explanation":"..."},{"question":"...","options":["...","...","...","..."],"correct":2,"explanation":"..."}]`;
+}
+
+// ════════ API ════════
+async function callClaude(prompt,maxTokens){
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:maxTokens||1200,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    if(data.error){showToast('API: '+data.error.message);return null;}
+    return data.content[0].text;
+  }catch(e){showToast('Bağlantı hatası');return null;}
+}
+async function callClaudeJSON(prompt){
+  const raw=await callClaude(prompt);
+  if(!raw)return null;
+  try{return parseJSON(raw);}
+  catch(e){
+    const raw2=await callClaude(prompt);
+    if(!raw2)return null;
+    try{return parseJSON(raw2);}catch{showToast('Test üretilemedi');return null;}
+  }
+}
+function parseJSON(raw){
+  let c=raw.replace(/```json/gi,'').replace(/```/g,'').trim();
+  const s=c.indexOf('['),e=c.lastIndexOf(']');
+  if(s===-1||e===-1)throw new Error('no array');
+  c=c.slice(s,e+1);
+  const p=JSON.parse(c);
+  if(!Array.isArray(p)||!p.length)throw new Error('empty');
+  return p;
+}
+
+// ════════ YARDIMCI ════════
+function isUyusmaz(q){const k=q.cevap_anahtari_kontrolu||{};return k.anahtar_var_mi&&k.uyusuyor_mu===false;}
+function anaKonu(konu){
+  const k=konu.toLowerCase();
+  const kat=[
+    ['İflas & Risk Teorisi',['iflas','ruin','lundberg','ayarlama katsay','düzeltme katsay','adjustment','surplus','riske maruz süreç','risk teorisi','cramér']],
+    ['Bileşik Poisson',['bileşik poisson','panjer','toplam hasar','compound']],
+    ['Poisson Süreci',['poisson süreci','homojen','nonhomojen','bekleme zaman']],
+    ['Kredibilite',['kredibilite','bühlmann','buhlmann','credibility']],
+    ['Bayes',['bayes','sonsal','posterior','eşlenik','eslenik','konjuge','conjugate']],
+    ['Risk Ölçütleri',['var','tvar','cte','riske maruz değer','risk ölçüt']],
+    ['Reasürans',['reasürans','reasurans','stop-loss','stop loss','hasar fazlası','quota','eksedan','excess','kot-par']],
+    ['Hasar Rezervi (IBNR)',['zincir','merdiven','chain ladder','muallak','ibnr','bornhuetter','rezerv','azmm']],
+    ['GLM',['glm','genelleştiril','doğrusal model','lineer model','link','logit','bağlantı']],
+    ['Severity & Dağılım',['pareto','üstel','ustel','muafiyet','deductible','hazard','artık ömür','mean excess','karma','mixture']],
+    ['Monte Carlo',['ters dönüşüm','ters donusum','inverse transform','rastgele sayı','monte carlo','simülasyon']],
+    ['Prim Karşılığı',['kazanılmamış','prim karşılığ','prim karsilig','gelecek dönem prim']],
+  ];
+  for(const[ad,as]of kat)if(as.some(a=>k.includes(a)))return ad;
+  return 'Diğer';
+}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+</script>
+</body>
+</html>
